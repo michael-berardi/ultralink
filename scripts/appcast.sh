@@ -15,7 +15,7 @@ bin=.build/artifacts/sparkle/Sparkle/bin
 if [ -n "${SPARKLE_KEY_FILE:-}" ]; then
   sig=$("$bin/sign_update" --ed-key-file "$SPARKLE_KEY_FILE" "$dmg")
 else
-  sig=$("$bin/sign_update" --account "${SPARKLE_ACCOUNT:-goodnight}" "$dmg")
+  sig=$("$bin/sign_update" --account "${SPARKLE_ACCOUNT:-ultralink}" "$dmg")
 fi
 cat > "$(dirname "$dmg")/appcast.xml" <<XML
 <?xml version="1.0" encoding="utf-8"?>
