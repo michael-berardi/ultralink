@@ -71,3 +71,7 @@ UltraLink talks only to your dish, on your local network. Nothing is sent anywhe
 ## License
 
 MIT. See [LICENSE](LICENSE).
+
+---
+
+Part of [Pareto Cybernetics](https://paretocybernetics.com/): free, private, open-source tools for working with AI agents.
