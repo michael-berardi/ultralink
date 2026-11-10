@@ -23,6 +23,11 @@
 
 UltraLink is an independent project. It is not affiliated with or endorsed by SpaceX or Starlink.
 
+## Download
+
+- **macOS 13 or later, Apple silicon and Intel:** [UltraLink-0.1.0-mac.dmg](https://github.com/michael-berardi/ultralink/releases/latest/download/UltraLink-0.1.0-mac.dmg). Signed and notarized by Apple, about 3 MB.
+- All releases and checksums (`SHA256SUMS`): [latest release](https://github.com/michael-berardi/ultralink/releases/latest). UltraLink is macOS only.
+
 ## What it shows
 
 - **Menu bar.** Live download and upload speed, or ping, next to a status icon. The icon changes during an outage.
