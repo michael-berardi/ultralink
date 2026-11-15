@@ -25,6 +25,7 @@ struct PBReader {
         var shift: UInt64 = 0
         while i < end {
             let b = bytes[i]; i += 1
+            guard shift < 63 || b <= 1 else { throw DishError.malformed("varint too long") }
             result |= UInt64(b & 0x7F) << shift
             if b & 0x80 == 0 { return result }
             shift += 7
@@ -47,8 +48,8 @@ struct PBReader {
             i += 8
             return (number, .fixed64(v))
         case 2:
-            let n = Int(try varint())
-            guard n >= 0, i + n <= end else { throw DishError.malformed("truncated field \(number)") }
+            let length = try varint()
+            guard let n = Int(exactly: length), n <= end - i else { throw DishError.malformed("truncated field \(number)") }
             let sub = PBReader(bytes: bytes, start: i, end: i + n)
             i += n
             return (number, .bytes(sub))

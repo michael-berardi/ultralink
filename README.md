@@ -1,19 +1,8 @@
-<p align="center">
-  <img src="docs/icon.png" width="128" height="128" alt="UltraLink icon">
-</p>
+# UltraLink
 
-<h1 align="center">UltraLink</h1>
+<img src="docs/icon.png" width="128" height="128" alt="UltraLink icon">
 
-<p align="center">
-  Your Starlink connection, live in the Mac menu bar.<br>
-  A tiny, free, open-source app. No account, no cloud, no tracking.
-</p>
-
-<p align="center">
-  <a href="https://github.com/michael-berardi/ultralink/releases/latest">Download</a> ·
-  <a href="#what-it-shows">What it shows</a> ·
-  <a href="#build-from-source">Build from source</a>
-</p>
+A macOS menu bar app for Starlink users. See traffic, outages and obstructions without opening the router app. It reads the dish locally and never changes its settings.
 
 <p align="center">
   <img src="docs/popover.png" width="320" alt="UltraLink popover">
@@ -21,62 +10,55 @@
   <img src="docs/sky-view.png" width="440" alt="UltraLink sky view">
 </p>
 
-UltraLink is an independent project. It is not affiliated with or endorsed by SpaceX or Starlink.
+## Install and first use
 
-## Download
+On **macOS 13 or later**, download the DMG from the [latest release](https://github.com/michael-berardi/ultralink/releases/latest), open it and drag UltraLink to Applications. Releases include Apple silicon and Intel builds, an update feed and `SHA256SUMS`.
 
-- **macOS 13 or later, Apple silicon and Intel:** [UltraLink-0.1.0-mac.dmg](https://github.com/michael-berardi/ultralink/releases/latest/download/UltraLink-0.1.0-mac.dmg). Signed and notarized by Apple, about 3 MB.
-- All releases and checksums (`SHA256SUMS`): [latest release](https://github.com/michael-berardi/ultralink/releases/latest). UltraLink is macOS only.
+Open UltraLink while connected to your Starlink network, then click its menu bar icon. In **Settings › Dish**, enter another address if needed and press Return. If your router is in bypass mode, your network must still provide a route to the dish. Without a dish, enable **Settings › Data › Demo mode**.
 
 ## What it shows
 
-- **Menu bar.** Live download and upload speed, or ping, next to a status icon. The icon changes during an outage.
-- **Live numbers.** Download, upload, ping, packet loss, how much of the sky is blocked, power draw, uptime and GPS lock.
-- **History.** Charts for the last 15 minutes, hour, day and week. Hover a chart to read any moment.
-- **Data used.** Today and this month, counted while the app runs.
-- **Outages and alerts.** The cause and length of each outage the dish reports, plus its own warnings (slow Ethernet cable, overheating, water detected, and more).
-- **Notifications.** A message when the connection drops and when it returns.
-- **Sky View.** The dish's obstruction map, where it points, its tilt, GPS, cable speed and software version.
-- **Speed test.** One button, using the `networkQuality` tool that ships with macOS.
+- Download and upload speed or latency in the menu bar, with an outage icon.
+- Ping, packet loss, obstruction percentage, power, uptime and GPS lock.
+- Charts for 15 minutes, one hour, one day and one week; hover for values.
+- Today’s and this month’s estimated data use, plus dish-reported outages and alerts.
+- Outage and recovery notifications, when permission is granted.
+- Sky View: obstruction map, pointing direction, tilt, GPS, cable speed and firmware.
+- A speed test using macOS’s `networkQuality` tool.
 
-It is read-only. UltraLink never changes a setting on your dish or router.
+Data totals come from the dish’s recent history. UltraLink can recover up to about 15 minutes when it starts; longer gaps are not counted. Totals are not billing measurements.
 
-## Install
+## Network and privacy
 
-**macOS 13 or later.** Download `UltraLink-<version>-mac.dmg` from [Releases](https://github.com/michael-berardi/ultralink/releases/latest), open it and drag UltraLink to Applications. The app is signed and notarized by Apple, about 5 MB, and checks for updates once a day (turn it off in Settings).
+The dish’s unofficial gRPC-web API is normally at `192.168.100.1:9201`. Firmware changes may affect compatibility. UltraLink tries the default route, then Wi-Fi and Ethernet interfaces, which can help when a VPN takes over the default route. This does not guarantee access through every VPN or router configuration.
 
-Your Mac has to be on the Starlink router's network: its Wi-Fi, or a cable to it. If the Mac is in bypass mode or you use a different address, set it in **Settings › Dish**. No dish nearby? **Settings › Demo mode** shows the app with sample data.
+Status is polled every two seconds when the popover is open or the menu bar shows speeds or latency, otherwise every six seconds. Failed polls use a five-second delay. History is refreshed every ten seconds with the popover open, otherwise every minute. Request time adds to these intervals.
 
-## Works with a VPN
-
-A VPN or exit node (Tailscale, WireGuard and similar) takes over your Mac's default route, and the dish at `192.168.100.1` only exists on the Starlink router's own network. UltraLink sends its requests straight out of your Wi-Fi or Ethernet connection, so it keeps working with the VPN on.
-
-## How it works
-
-The dish serves a local API on your network (gRPC-web on port 9201). UltraLink asks it for status every two seconds while the menu is open or the menu bar shows speeds, and every six seconds otherwise, reads the dish's own 15-minute record every minute, and keeps per-minute averages for a week in `~/Library/Application Support/UltraLink/history.json`. It decodes the few fields it needs with a small built-in reader, so there are no dependencies except [Sparkle](https://sparkle-project.org) for updates.
-
-The API is unofficial and Starlink can change it with a firmware update. Data totals only count time when UltraLink is running, because the dish keeps just 15 minutes of detail.
+History stays in the user’s Application Support directory under `UltraLink/history.json`. The app keeps per-minute readings for a week. Speed tests contact Apple’s servers; Sparkle update checks contact GitHub daily by default. Disable automatic checks in **Settings › Updates**. Dish readings are not uploaded by the app.
 
 ## Build from source
+
+Requires Xcode or its command-line tools with Swift 5.9 or newer. [Sparkle](https://sparkle-project.org) is the only package dependency.
 
 ```sh
 git clone https://github.com/michael-berardi/ultralink
 cd ultralink
-SIGN_ID=- scripts/build.sh      # ad-hoc signed build in dist/UltraLink.app
-dist/UltraLink.app/Contents/MacOS/UltraLink --probe   # read the dish once and print what it says
+SIGN_ID=- scripts/build.sh
 ```
 
-- `--demo` runs with sample data. `--show-popover`, `--show-sky` and `--show-settings` open the views in ordinary windows.
-- `tests/run.sh <dish.protoset>` starts a mock dish (`tests/mock_dish.py`) and checks the decoder end to end. A `dish.protoset` can be dumped from a dish's gRPC reflection with [starlink-grpc-tools](https://github.com/sparky8512/starlink-grpc-tools).
+The script builds both architectures and creates an ad-hoc signed `dist/UltraLink.app`. Distribution signing and notarization are separate release steps.
 
-## Privacy
+For a compile-only check without packaging or signing:
 
-UltraLink talks only to your dish, on your local network. Nothing is sent anywhere else. The one exception is the speed test, which uses Apple's servers through `networkQuality`, and the daily update check against this repository.
+```sh
+swift build -j 4 -c release --arch arm64 --arch x86_64 -Xswiftc -Osize
+tests/unit.sh
+```
+
+The standalone decoder tests need no dish or app launch. The optional end-to-end check, `tests/run.sh <dish.protoset>`, requires the built app, Python 3 with `protobuf`, and a descriptor set obtained through gRPC reflection (see [starlink-grpc-tools](https://github.com/sparky8512/starlink-grpc-tools)). It starts a local mock and runs the app’s probe.
+
+The executable accepts `--probe [host] --port <port>` to print readings once (defaults: `192.168.100.1`, `9201`), and `--demo` for sample data. `--show-popover`, `--show-sky` and `--show-settings` open those views in ordinary windows.
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
-
----
-
-Part of [Pareto Cybernetics](https://paretocybernetics.com/projects/ultralink/): free, private, open-source tools for working with AI agents.
+MIT. See [LICENSE](LICENSE). UltraLink is independent and is not affiliated with or endorsed by the dish manufacturer.
