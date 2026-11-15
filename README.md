@@ -12,7 +12,7 @@ A macOS menu bar app for Starlink users. See traffic, outages and obstructions w
 
 ## Install and first use
 
-On **macOS 13 or later**, download the DMG from the [latest release](https://github.com/michael-berardi/ultralink/releases/latest), open it and drag UltraLink to Applications. Releases include Apple silicon and Intel builds, an update feed and `SHA256SUMS`.
+On **macOS 13 or later**, [download UltraLink 0.1.1](https://github.com/michael-berardi/ultralink/releases/download/v0.1.1/UltraLink-0.1.1-mac.dmg), open the DMG and drag UltraLink to Applications. The download is signed and notarized, for Apple silicon and Intel. [Releases and checksums](https://github.com/michael-berardi/ultralink/releases/latest).
 
 Open UltraLink while connected to your Starlink network, then click its menu bar icon. In **Settings › Dish**, enter another address if needed and press Return. If your router is in bypass mode, your network must still provide a route to the dish. Without a dish, enable **Settings › Data › Demo mode**.
 
@@ -62,3 +62,7 @@ The executable accepts `--probe [host] --port <port>` to print readings once (de
 ## License
 
 MIT. See [LICENSE](LICENSE). UltraLink is independent and is not affiliated with or endorsed by the dish manufacturer.
+
+---
+
+Part of [Pareto Cybernetics](https://paretocybernetics.com/projects/ultralink/): free, private, open-source tools for working with AI agents.
