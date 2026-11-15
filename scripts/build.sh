@@ -5,8 +5,8 @@
 set -eu
 cd "$(dirname "$0")/.."
 
-swift build -c release --arch arm64 --arch x86_64 -Xswiftc -Osize
-bin=.build/apple/Products/Release/UltraLink
+swift build -j 4 -c release --arch arm64 --arch x86_64 -Xswiftc -Osize
+bin="$(swift build -j 4 -c release --arch arm64 --arch x86_64 -Xswiftc -Osize --show-bin-path)/UltraLink"
 
 app="dist/UltraLink.app"
 rm -rf "$app"
