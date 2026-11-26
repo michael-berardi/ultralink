@@ -14,7 +14,7 @@ UltraLink follows the project's update contract: it tells you about a newer rele
 
 ## Choosing
 
-- **Settings › Updates** has **Check for updates automatically** (on for fresh installs), **Install updates automatically** (off for fresh installs), **Check Now** aligned with those controls, and the current version beside **Check Now** (`Version 0.2.4` in this build). There is no explanatory caption under the controls; with the run-time opt-out, the only caption is **Checks are off for this run.**
+- **Settings › Updates** has **Check for updates automatically** (on for fresh installs), **Install updates automatically** (off for fresh installs), the current version on the left of the last row (`Version 0.3.1` in this build), and **Check Now** on the right, aligned with those switches. There is no explanatory caption under the controls; with the run-time opt-out, the only caption is **Checks are off for this run.**
 - Your later choice is saved by Sparkle and is not overwritten at launch, so an existing opt-out stays off.
 - To turn checks off for a run or for every launch, set `ULTRALINK_NO_UPDATE_CHECK=1`, or turn off **Check for updates automatically** in Settings. Turning checks off also turns off automatic installation.
 - A found update produces a non-modal prompt with the version, release notes, **Install Update**, **Remind Me Later** and **Skip This Version**. **Automatically download and install updates in the future** is unchecked until you check it.

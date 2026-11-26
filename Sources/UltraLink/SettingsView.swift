@@ -41,11 +41,11 @@ struct SettingsView: View {
                 Toggle("Install updates automatically", isOn: Binding(get: { updates.autoInstall }, set: { updates.autoInstall = $0 }))
                     .disabled(updates.disabled || !updates.automatic)
                 HStack {
-                    Button("Check Now") { updates.checkForUpdates() }
-                        .disabled(updates.disabled)
-                    Spacer()
                     Text("Version \(appVersion)")
                         .font(.caption).foregroundStyle(.secondary)
+                    Button("Check Now") { updates.checkForUpdates() }
+                        .disabled(updates.disabled)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
                 }
                 if updates.disabled {
                     Text("Checks are off for this run.")

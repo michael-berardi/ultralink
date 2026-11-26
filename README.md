@@ -12,7 +12,7 @@ A macOS menu bar app for Starlink users. See traffic, outages and obstructions w
 
 ## Install and first use
 
-On **macOS 13 or later**, [download the latest published UltraLink release](https://github.com/michael-berardi/ultralink/releases/latest), open its DMG and drag UltraLink to Applications. The download is signed and notarized, for Apple silicon and Intel. [Releases and checksums](https://github.com/michael-berardi/ultralink/releases/latest); the currently published build is 0.1.1, while this branch is not released yet.
+On **macOS 13 or later**, [download the latest published UltraLink release](https://github.com/michael-berardi/ultralink/releases/latest), open its DMG and drag UltraLink to Applications. The download is signed and notarized, for Apple silicon and Intel. [Releases and checksums](https://github.com/michael-berardi/ultralink/releases/latest); the published download is [v0.3.0](https://github.com/michael-berardi/ultralink/releases/tag/v0.3.0). This branch is version 0.3.1 and is not published yet.
 
 Open UltraLink while connected to your Starlink network, then click its menu bar icon. In **Settings › Dish**, enter another address if needed and press Return. If your router is in bypass mode, your network must still provide a route to the dish. Without a dish, enable **Settings › Data › Demo mode**.
 

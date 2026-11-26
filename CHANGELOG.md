@@ -2,6 +2,13 @@
 
 Changes are recorded in [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.3.1] - 2026-11-26
+
+### Fixed
+
+- **Settings › Updates** puts the current version on the left and **Check Now** on the right, aligned with the update switches; the spacer no longer reverses them.
+- The branch version is above the published v0.3.0 tag. The README points to the published v0.3.0 download and does not claim a 0.3.1 release asset.
+
 ## [0.2.4] - 2026-11-26
 
 ### Fixed
