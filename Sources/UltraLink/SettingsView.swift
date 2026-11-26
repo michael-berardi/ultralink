@@ -34,7 +34,7 @@ struct SettingsView: View {
             Section("Updates") {
                 Toggle("Check GitHub for updates automatically", isOn: Binding(get: { updates.automatic }, set: { updates.automatic = $0 }))
                 Button("Check Now") { updates.checkForUpdates() }
-                Text("Off by default. UltraLink contacts GitHub only when you check now or turn this on. Updates are signed and verified before installation.")
+                Text("UltraLink contacts GitHub only when you check now or turn this on.")
                     .font(.caption).foregroundStyle(.secondary)
             }
             Section("Data") {

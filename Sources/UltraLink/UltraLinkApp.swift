@@ -134,16 +134,16 @@ enum QA {
         if args.contains("--show-popover") { host(PopoverView(), title: "UltraLink", at: 60) }
         if args.contains("--show-sky") { host(SkyView(), title: "Sky View", at: 480) }
         if args.contains("--show-settings") { host(SettingsView(), title: "Settings", at: 1000) }
-        if !windows.isEmpty { NSApp.activate(ignoringOtherApps: true) }
+        if !windows.isEmpty && !args.contains("--snapshot") { NSApp.activate(ignoringOtherApps: true) }
         if let i = args.firstIndex(of: "--snapshot"), let dir = args[safe: i + 1] {
             DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
                 try? FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)
                 for w in windows {
                     let name = w.title.lowercased().replacingOccurrences(of: " ", with: "-")
-                    let p = Process()
-                    p.executableURL = URL(fileURLWithPath: "/usr/sbin/screencapture")
-                    p.arguments = ["-x", "-o", "-l", "\(w.windowNumber)", "\(dir)/\(name).png"]
-                    try? p.run(); p.waitUntilExit()
+                    if let v = w.contentView, let rep = v.bitmapImageRepForCachingDisplay(in: v.bounds) {
+                        v.cacheDisplay(in: v.bounds, to: rep)
+                        try? rep.representation(using: .png, properties: [:])?.write(to: URL(fileURLWithPath: "\(dir)/\(name).png"))
+                    }
                 }
                 exit(0)
             }
