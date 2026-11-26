@@ -57,32 +57,63 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
-/// Signed updates through Sparkle. Checks are off by default: the GitHub feed is fetched only when
-/// the user presses Check Now or explicitly enables automatic checks. Downloads are verified with
-/// the EdDSA key in Info.plist before anything is installed.
+/// Signed updates through Sparkle. The Info.plist default is one anonymous daily check of the
+/// signed GitHub feed; a user's earlier Settings choice is preserved because nothing is written at
+/// launch. Downloads are verified with the EdDSA key before installation. Automatic installation is
+/// a separate, off-by-default opt-in.
 final class Updates: ObservableObject {
     static let shared = Updates()
     private var controller: SPUStandardUpdaterController?
 
+    /// The user-facing opt-out; only this forces the Settings controls off.
+    static var optedOut: Bool { ProcessInfo.processInfo.environment["ULTRALINK_NO_UPDATE_CHECK"] == "1" }
+
+    /// No feed request at all for an explicit opt-out, CI, or headless/probe/snapshot runs.
+    static var checksSuppressed: Bool {
+        let env = ProcessInfo.processInfo.environment
+        if optedOut || env["CI"] != nil { return true }
+        let args = CommandLine.arguments
+        return args.contains("--probe") || args.contains("--snapshot")
+    }
+
+    var disabled: Bool { Self.optedOut }
+
     func start() {
+        // startingUpdater: false keeps the feed request off this call; startUpdater() schedules the
+        // daily background check only when checks are allowed. Sparkle reads the Info.plist default
+        // (true) unless the user has explicitly saved a different choice in its own defaults.
         let c = SPUStandardUpdaterController(startingUpdater: false, updaterDelegate: nil, userDriverDelegate: nil)
         controller = c
-        // Fresh installs stay off; a user's later choice in Settings is preserved.
-        // Set before starting the updater so no scheduled feed request can be made at launch.
-        if UserDefaults.standard.object(forKey: "SUEnableAutomaticChecks") == nil {
-            c.updater.automaticallyChecksForUpdates = false
-        }
+        // Fixed, non-identifying User-Agent. SUSendProfileInfo=false in Info.plist suppresses
+        // machine/OS profile parameters, so the GET carries no client id, version or usage data.
+        c.updater.httpHeaders = ["User-Agent": "ultralink-update-check"]
+        guard !Self.checksSuppressed else { return }
         c.startUpdater()
     }
 
     func checkForUpdates() {
+        guard !Self.checksSuppressed else { return }
         NSApp.activate(ignoringOtherApps: true)
         controller?.checkForUpdates(nil)
     }
 
     var automatic: Bool {
-        get { controller?.updater.automaticallyChecksForUpdates ?? false }
-        set { controller?.updater.automaticallyChecksForUpdates = newValue; objectWillChange.send() }
+        get { !Self.optedOut && (controller?.updater.automaticallyChecksForUpdates ?? true) }
+        set {
+            guard !Self.optedOut else { return }
+            controller?.updater.automaticallyChecksForUpdates = newValue
+            if !newValue { autoInstall = false }
+            objectWillChange.send()
+        }
+    }
+
+    var autoInstall: Bool {
+        get { !Self.optedOut && (controller?.updater.automaticallyDownloadsUpdates ?? false) }
+        set {
+            guard !Self.optedOut else { return }
+            controller?.updater.automaticallyDownloadsUpdates = newValue
+            objectWillChange.send()
+        }
     }
 }
 

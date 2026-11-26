@@ -2,7 +2,16 @@
 
 Changes are recorded in [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format. Versions follow [Semantic Versioning](https://semver.org/).
 
-## [0.2.0] - 2026-11-26
+## [0.2.1] - 2026-11-26
+
+### Changed
+
+- Fresh installs check the signed GitHub feed once a day by default; the request is anonymous, uses a fixed User-Agent and sends no system profile. Existing Settings choices are preserved, including an earlier opt-out.
+- **Settings › Updates** now shows **Check for updates automatically** (on), **Install updates automatically** (off), **Check Now** and the current version. `ULTRALINK_NO_UPDATE_CHECK=1`, CI and headless modes disable checks for that run.
+
+### Added
+
+- `docs/updates.md` with the update-contract v1 marker, a README **Updates** section and a privacy regression test for the new defaults.
 
 ### Changed
 

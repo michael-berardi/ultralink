@@ -1,6 +1,6 @@
 #!/bin/sh
-# Fails if telemetry code, undocumented remote endpoints, automatic update
-# checks, or non-private history permissions are reintroduced.
+# Fails if telemetry code, undocumented remote endpoints, a non-conforming
+# update default, or non-private history permissions are reintroduced.
 set -eu
 cd "$(dirname "$0")/.."
 fail() { echo "FAIL: $1"; exit 1; }
@@ -25,16 +25,24 @@ for u in $urls; do
   esac
 done
 
-# Update checks must stay off until the user asks for them.
-grep -A1 '<key>SUEnableAutomaticChecks</key>' Resources/Info.plist | grep -q '<false/>' ||
-  fail "SUEnableAutomaticChecks is enabled in Info.plist"
+# Update contract v1: checks on by default, install off, anonymous and daily,
+# with an environment opt-out. The opposite default must fail this test.
+grep -A1 '<key>SUEnableAutomaticChecks</key>' Resources/Info.plist | grep -q '<true/>' ||
+  fail "SUEnableAutomaticChecks is not enabled in Info.plist"
+grep -A1 '<key>SUAutomaticallyUpdate</key>' Resources/Info.plist | grep -q '<false/>' ||
+  fail "automatic installation is not off by default in Info.plist"
+grep -A1 '<key>SUSendProfileInfo</key>' Resources/Info.plist | grep -q '<false/>' ||
+  fail "system profile is sent with update checks"
+grep -A1 '<key>SUScheduledCheckInterval</key>' Resources/Info.plist | grep -q '<integer>86400</integer>' ||
+  fail "update checks are not limited to once per 24 h"
 app=Sources/UltraLink/UltraLinkApp.swift
-if grep -q 'startingUpdater: true' "$app"; then fail "updater starts before the opt-out"; fi
-optout=$(grep -n 'c.updater.automaticallyChecksForUpdates = false' "$app" | cut -d: -f1)
-startup=$(grep -n 'c.startUpdater()' "$app" | cut -d: -f1)
-[ -n "$optout" ] && [ -n "$startup" ] && [ "$optout" -lt "$startup" ] ||
-  fail "automatic checks are not disabled before startUpdater"
-grep -qF 'automaticallyChecksForUpdates ?? false' "$app" || fail "automatic update state defaults to on"
+if grep -q 'startingUpdater: true' "$app"; then fail "updater starts before the opt-out is evaluated"; fi
+grep -qF 'ULTRALINK_NO_UPDATE_CHECK' "$app" || fail "environment opt-out is missing"
+grep -qF '"User-Agent": "ultralink-update-check"' "$app" || fail "update check User-Agent is not fixed"
+grep -qF 'controller?.updater.automaticallyChecksForUpdates ?? true' "$app" ||
+  fail "automatic update state does not default to on"
+grep -qF 'controller?.updater.automaticallyDownloadsUpdates ?? false' "$app" ||
+  fail "automatic installation state does not default to off"
 
 # User readings on disk must stay private, including the unreadable-file backup.
 store=Sources/UltraLink/Store.swift

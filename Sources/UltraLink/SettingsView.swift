@@ -32,10 +32,20 @@ struct SettingsView: View {
                 Toggle("Notify me about outages", isOn: $notify).onChange(of: notify) { if $0 { monitor.requestNotificationPermission() } }
             }
             Section("Updates") {
-                Toggle("Check GitHub for updates automatically", isOn: Binding(get: { updates.automatic }, set: { updates.automatic = $0 }))
+                Toggle("Check for updates automatically", isOn: Binding(get: { updates.automatic }, set: { updates.automatic = $0 }))
+                    .disabled(updates.disabled)
+                Toggle("Install updates automatically", isOn: Binding(get: { updates.autoInstall }, set: { updates.autoInstall = $0 }))
+                    .disabled(updates.disabled || !updates.automatic)
                 Button("Check Now") { updates.checkForUpdates() }
-                Text("UltraLink contacts GitHub only when you check now or turn this on.")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .disabled(updates.disabled)
+                Text("Current version: UltraLink \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "")")
+                if updates.disabled {
+                    Text("Checks are off for this run (ULTRALINK_NO_UPDATE_CHECK=1, CI, or a headless mode). Restart without that setting to change this.")
+                        .font(.caption).foregroundStyle(.secondary)
+                } else {
+                    Text("One anonymous check of the signed GitHub feed a day; no system profile is sent. Updates are verified before installation; automatic installation is off until you opt in.")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
             }
             Section("Data") {
                 Toggle("Demo mode", isOn: $demo).onChange(of: demo) { monitor.configure(demo: $0) }
