@@ -2,6 +2,12 @@
 
 Changes are recorded in [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.2.2] - 2026-11-26
+
+### Fixed
+
+- **Settings › Updates** shows the contractual defaults before the updater starts, including in snapshot and headless runs, without making a feed request in those runs.
+
 ## [0.2.1] - 2026-11-26
 
 ### Changed
@@ -12,6 +18,8 @@ Changes are recorded in [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 ### Added
 
 - `docs/updates.md` with the update-contract v1 marker, a README **Updates** section and a privacy regression test for the new defaults.
+
+## [0.2.0] - 2026-11-26
 
 ### Changed
 

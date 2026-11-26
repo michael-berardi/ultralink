@@ -39,10 +39,14 @@ app=Sources/UltraLink/UltraLinkApp.swift
 if grep -q 'startingUpdater: true' "$app"; then fail "updater starts before the opt-out is evaluated"; fi
 grep -qF 'ULTRALINK_NO_UPDATE_CHECK' "$app" || fail "environment opt-out is missing"
 grep -qF '"User-Agent": "ultralink-update-check"' "$app" || fail "update check User-Agent is not fixed"
-grep -qF 'controller?.updater.automaticallyChecksForUpdates ?? true' "$app" ||
+grep -qF 'displayedUpdateState(key: "SUEnableAutomaticChecks", plistDefault: true)' "$app" ||
   fail "automatic update state does not default to on"
-grep -qF 'controller?.updater.automaticallyDownloadsUpdates ?? false' "$app" ||
+grep -qF 'displayedUpdateState(key: "SUAutomaticallyUpdate", plistDefault: false)' "$app" ||
   fail "automatic installation state does not default to off"
+grep -qF 'UserDefaults.standard.object(forKey: key) as? NSNumber' "$app" ||
+  fail "Settings ignores a saved update preference"
+grep -qF 'Bundle.main.object(forInfoDictionaryKey: key) as? NSNumber' "$app" ||
+  fail "Settings ignores the Info.plist update default"
 
 # User readings on disk must stay private, including the unreadable-file backup.
 store=Sources/UltraLink/Store.swift

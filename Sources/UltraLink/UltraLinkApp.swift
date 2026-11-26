@@ -97,8 +97,17 @@ final class Updates: ObservableObject {
         controller?.checkForUpdates(nil)
     }
 
+    /// Sparkle reports `false` before the updater starts (for example in a snapshot or headless
+    /// run), so Settings reads the saved preference or the Info.plist default instead.
+    private func displayedUpdateState(key: String, plistDefault: Bool) -> Bool {
+        guard !Self.optedOut else { return false }
+        if let saved = UserDefaults.standard.object(forKey: key) as? NSNumber { return saved.boolValue }
+        if let bundled = Bundle.main.object(forInfoDictionaryKey: key) as? NSNumber { return bundled.boolValue }
+        return plistDefault
+    }
+
     var automatic: Bool {
-        get { !Self.optedOut && (controller?.updater.automaticallyChecksForUpdates ?? true) }
+        get { displayedUpdateState(key: "SUEnableAutomaticChecks", plistDefault: true) }
         set {
             guard !Self.optedOut else { return }
             controller?.updater.automaticallyChecksForUpdates = newValue
@@ -108,7 +117,7 @@ final class Updates: ObservableObject {
     }
 
     var autoInstall: Bool {
-        get { !Self.optedOut && (controller?.updater.automaticallyDownloadsUpdates ?? false) }
+        get { displayedUpdateState(key: "SUAutomaticallyUpdate", plistDefault: false) }
         set {
             guard !Self.optedOut else { return }
             controller?.updater.automaticallyDownloadsUpdates = newValue
