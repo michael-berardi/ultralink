@@ -37,9 +37,13 @@ struct UltraLinkApp: App {
 
 private struct MenuLabel: View {
     @EnvironmentObject var monitor: Monitor
+    @StateObject private var updates = Updates.shared
 
     var body: some View {
         HStack(spacing: 4) {
+            if updates.available != nil {
+                Image(systemName: "arrow.down.circle.fill").accessibilityLabel("Update available")
+            }
             Image(systemName: monitor.state.isProblem ? "antenna.radiowaves.left.and.right.slash" : "antenna.radiowaves.left.and.right")
             let t = monitor.menuBarText
             if !t.isEmpty { Text(t).font(.system(size: 12, weight: .medium).monospacedDigit()) }
@@ -58,22 +62,84 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 }
 
 /// Signed updates through Sparkle: a daily check against the GitHub release feed (SUFeedURL),
-/// verified with the EdDSA key in Info.plist before anything is installed.
-final class Updates: ObservableObject {
+/// verified with the EdDSA key in Info.plist before anything is installed. A scheduled find is
+/// gentle: a badge in the menu bar and a line in the popover instead of a dialog over the user's
+/// work. Clicking it opens Sparkle's standard dialog (Install, Remind Me Later, Skip This Version).
+final class Updates: NSObject, ObservableObject, SPUUpdaterDelegate, SPUStandardUserDriverDelegate {
     static let shared = Updates()
+    /// The version of a scheduled find waiting for the user's attention.
+    @Published private(set) var available: String?
+    @Published private(set) var canCheck = false
     private var controller: SPUStandardUpdaterController?
+    private var observations: [NSKeyValueObservation] = []
 
-    func start() { controller = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil) }
+    static var currentVersion: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
+    }
+
+    func start() {
+        guard controller == nil else { return }
+        let c = SPUStandardUpdaterController(startingUpdater: false, updaterDelegate: self, userDriverDelegate: self)
+        // Sparkle's default user agent carries the app version; the check stays anonymous.
+        c.updater.userAgentString = "ultralink-update-check"
+        c.startUpdater()
+        controller = c
+        // Keep Settings in step when Sparkle's dialog changes a choice or a check starts or ends.
+        observations = [
+            c.updater.observe(\.canCheckForUpdates, options: [.initial, .new]) { [weak self] updater, _ in
+                DispatchQueue.main.async { self?.canCheck = updater.canCheckForUpdates }
+            },
+            c.updater.observe(\.automaticallyDownloadsUpdates) { [weak self] _, _ in
+                DispatchQueue.main.async { self?.objectWillChange.send() }
+            }
+        ]
+    }
 
     func checkForUpdates() {
         NSApp.activate(ignoringOtherApps: true)
         controller?.checkForUpdates(nil)
     }
 
+    /// The same check Sparkle's daily timer runs, for testing the reminder against a local feed.
+    func checkInBackground() { controller?.updater.checkForUpdatesInBackground() }
+
     var automatic: Bool {
         get { controller?.updater.automaticallyChecksForUpdates ?? true }
         set { controller?.updater.automaticallyChecksForUpdates = newValue; objectWillChange.send() }
     }
+
+    /// Off by default (SUAutomaticallyUpdate in Info.plist); Sparkle stores the user's choice.
+    var automaticInstall: Bool {
+        get { controller?.updater.automaticallyDownloadsUpdates ?? false }
+        set { controller?.updater.automaticallyDownloadsUpdates = newValue; objectWillChange.send() }
+    }
+
+    // MARK: SPUUpdaterDelegate
+
+    func updater(_ updater: SPUUpdater, mayPerform updateCheck: SPUUpdateCheck) throws {
+        let env = ProcessInfo.processInfo.environment
+        if updateCheck == .updatesInBackground,
+           !UpdateRules.backgroundChecksAllowed(environment: env, arguments: CommandLine.arguments) {
+            throw NSError(domain: "UltraLink", code: 1, userInfo: [NSLocalizedDescriptionKey: "Automatic update checks are off for this launch."])
+        }
+    }
+
+    // MARK: SPUStandardUserDriverDelegate
+
+    var supportsGentleScheduledUpdateReminders: Bool { true }
+
+    func standardUserDriverShouldHandleShowingScheduledUpdate(_ update: SUAppcastItem, andInImmediateFocus immediateFocus: Bool) -> Bool {
+        false
+    }
+
+    func standardUserDriverWillHandleShowingUpdate(_ handleShowingUpdate: Bool, forUpdate update: SUAppcastItem, state: SPUUserUpdateState) {
+        let version = update.displayVersionString
+        available = !handleShowingUpdate && UpdateRules.isNewer(version, than: Self.currentVersion) ? version : nil
+    }
+
+    func standardUserDriverDidReceiveUserAttention(forUpdate update: SUAppcastItem) { available = nil }
+
+    func standardUserDriverWillFinishUpdateSession() { available = nil }
 }
 
 /// `UltraLink --probe [host]` reads the dish once and prints what it found, with no UI.
@@ -125,18 +191,29 @@ enum QA {
         if args.contains("--show-sky") { host(SkyView(), title: "Sky View", at: 480) }
         if args.contains("--show-settings") { host(SettingsView(), title: "Settings", at: 1000) }
         if !windows.isEmpty { NSApp.activate(ignoringOtherApps: true) }
+        if args.contains("--scheduled-check") { Updates.shared.checkInBackground() }
         if let i = args.firstIndex(of: "--snapshot"), let dir = args[safe: i + 1] {
             DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
                 try? FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)
                 for w in windows {
                     let name = w.title.lowercased().replacingOccurrences(of: " ", with: "-")
-                    let p = Process()
-                    p.executableURL = URL(fileURLWithPath: "/usr/sbin/screencapture")
-                    p.arguments = ["-x", "-o", "-l", "\(w.windowNumber)", "\(dir)/\(name).png"]
-                    try? p.run(); p.waitUntilExit()
+                    capture(w, path: "\(dir)/\(name).png")
                 }
                 exit(0)
             }
         }
+    }
+
+    /// Screen Recording permission is not required to render our own window's view.
+    private static func capture(_ window: NSWindow, path: String) {
+        let p = Process()
+        p.executableURL = URL(fileURLWithPath: "/usr/sbin/screencapture")
+        p.arguments = ["-x", "-o", "-l", "\(window.windowNumber)", path]
+        try? p.run(); p.waitUntilExit()
+        if p.terminationStatus == 0 && FileManager.default.fileExists(atPath: path) { return }
+        guard let view = window.contentView,
+              let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { return }
+        view.cacheDisplay(in: view.bounds, to: rep)
+        try? rep.representation(using: .png, properties: [:])?.write(to: URL(fileURLWithPath: path))
     }
 }

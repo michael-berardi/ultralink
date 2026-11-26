@@ -6,6 +6,7 @@ import SwiftUI
 struct PopoverView: View {
     @EnvironmentObject var monitor: Monitor
     @StateObject private var speed = SpeedTest()
+    @StateObject private var updates = Updates.shared
     @AppStorage("chartRange") private var rangeRaw = ChartRange.m15.rawValue
     @State private var hover: Sample?
     @State private var showOutages = false
@@ -15,6 +16,14 @@ struct PopoverView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             Header()
+            if let version = updates.available {
+                HStack(spacing: 8) {
+                    Text(UpdateRules.notice(available: version, current: Updates.currentVersion))
+                        .font(.callout).fixedSize(horizontal: false, vertical: true)
+                    Spacer(minLength: 0)
+                    Button("Update…") { updates.checkForUpdates() }.controlSize(.small).buttonStyle(.borderedProminent)
+                }
+            }
             if let s = monitor.status, !isUnreachable {
                 let series = monitor.series(range)
                 Readout(status: s, hover: hover)

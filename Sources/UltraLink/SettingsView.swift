@@ -33,7 +33,12 @@ struct SettingsView: View {
             }
             Section("Updates") {
                 Toggle("Check for updates automatically", isOn: Binding(get: { updates.automatic }, set: { updates.automatic = $0 }))
-                Button("Check Now") { updates.checkForUpdates() }
+                Toggle("Install updates automatically", isOn: Binding(get: { updates.automaticInstall }, set: { updates.automaticInstall = $0 }))
+                HStack {
+                    Text("Version \(Updates.currentVersion)").foregroundStyle(.secondary)
+                    Spacer()
+                    Button("Check Now") { updates.checkForUpdates() }.disabled(!updates.canCheck)
+                }
             }
             Section("Data") {
                 Toggle("Demo mode", isOn: $demo).onChange(of: demo) { monitor.configure(demo: $0) }
@@ -45,11 +50,8 @@ struct SettingsView: View {
                     .font(.caption).foregroundStyle(.secondary)
             }
             Section {
-                HStack {
-                    Text("UltraLink \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "")")
-                    Spacer()
-                    Link("Source on GitHub", destination: URL(string: "https://github.com/michael-berardi/ultralink")!)
-                }.font(.caption).foregroundStyle(.secondary)
+                Link("Source on GitHub", destination: URL(string: "https://github.com/michael-berardi/ultralink")!)
+                    .font(.caption).foregroundStyle(.secondary)
             }
         }
         .formStyle(.grouped)

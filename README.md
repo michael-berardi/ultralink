@@ -12,7 +12,7 @@ A macOS menu bar app for Starlink users. See traffic, outages and obstructions w
 
 ## Install and first use
 
-On **macOS 13 or later**, [download UltraLink 0.1.1](https://github.com/michael-berardi/ultralink/releases/download/v0.1.1/UltraLink-0.1.1-mac.dmg), open the DMG and drag UltraLink to Applications. The download is signed and notarized, for Apple silicon and Intel. [Releases and checksums](https://github.com/michael-berardi/ultralink/releases/latest).
+On **macOS 13 or later**, [download UltraLink 0.2.0](https://github.com/michael-berardi/ultralink/releases/download/v0.2.0/UltraLink-0.2.0-mac.dmg), open the DMG and drag UltraLink to Applications. The download is signed and notarized, for Apple silicon and Intel. [Releases and checksums](https://github.com/michael-berardi/ultralink/releases/latest).
 
 Open UltraLink while connected to your Starlink network, then click its menu bar icon. In **Settings › Dish**, enter another address if needed and press Return. If your router is in bypass mode, your network must still provide a route to the dish. Without a dish, enable **Settings › Data › Demo mode**.
 
@@ -28,13 +28,17 @@ Open UltraLink while connected to your Starlink network, then click its menu bar
 
 Data totals come from the dish’s recent history. UltraLink can recover up to about 15 minutes when it starts; longer gaps are not counted. Totals are not billing measurements.
 
-## Network and privacy
+## Updates
 
-The dish’s unofficial gRPC-web API is normally at `192.168.100.1:9201`. Firmware changes may affect compatibility. UltraLink tries the default route, then Wi-Fi and Ethernet interfaces, which can help when a VPN takes over the default route. This does not guarantee access through every VPN or router configuration.
+UltraLink checks its signed release feed once a day. When a new version is out, a badge appears next to the menu bar icon; click **Update…** in the popover to install it, skip it or turn on automatic installs (off by default). Details: [docs/updates.md](docs/updates.md).
 
-Status is polled every two seconds when the popover is open or the menu bar shows speeds or latency, otherwise every six seconds. Failed polls use a five-second delay. History is refreshed every ten seconds with the popover open, otherwise every minute. Request time adds to these intervals.
+## Privacy
 
-History stays in the user’s Application Support directory under `UltraLink/history.json`. The app keeps per-minute readings for a week. Speed tests contact Apple’s servers; Sparkle update checks contact GitHub daily by default. Disable automatic checks in **Settings › Updates**. Dish readings are not uploaded by the app.
+- UltraLink reads the dish on your local network and never changes its settings.
+- History stays on this Mac (a week of per-minute readings). Dish readings are never uploaded.
+- The speed test contacts Apple’s servers, only when you start it.
+- The update check is one anonymous request a day to the GitHub release feed. Turn it off in **Settings › Updates**.
+- Details, including network and polling behavior: [PRIVACY.md](PRIVACY.md).
 
 ## Build from source
 
@@ -55,9 +59,9 @@ swift build -j 4 -c release --arch arm64 --arch x86_64 -Xswiftc -Osize
 tests/unit.sh
 ```
 
-The standalone decoder tests need no dish or app launch. The optional end-to-end check, `tests/run.sh <dish.protoset>`, requires the built app, Python 3 with `protobuf`, and a descriptor set obtained through gRPC reflection (see [starlink-grpc-tools](https://github.com/sparky8512/starlink-grpc-tools)). It starts a local mock and runs the app’s probe.
+The standalone decoder and update-rule tests need no dish, network or app launch. The optional end-to-end check, `tests/run.sh <dish.protoset>`, requires the built app, Python 3 with `protobuf`, and a descriptor set obtained through gRPC reflection (see [starlink-grpc-tools](https://github.com/sparky8512/starlink-grpc-tools)). It starts a local mock and runs the app’s probe.
 
-The executable accepts `--probe [host] --port <port>` to print readings once (defaults: `192.168.100.1`, `9201`), and `--demo` for sample data. `--show-popover`, `--show-sky` and `--show-settings` open those views in ordinary windows.
+The executable accepts `--probe [host] --port <port>` to print readings once (defaults: `192.168.100.1`, `9201`), and `--demo` for sample data. `--show-popover`, `--show-sky` and `--show-settings` open those views in ordinary windows, and `--snapshot <dir>` saves them as PNGs and quits. These launches skip the background update check unless `--scheduled-check` asks for one.
 
 ## License
 

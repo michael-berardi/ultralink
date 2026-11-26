@@ -11,6 +11,13 @@ version=$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' "$plist"
 build=$(/usr/libexec/PlistBuddy -c 'Print CFBundleVersion' "$plist")
 repo="${ULTRALINK_REPO:-michael-berardi/ultralink}"
 base="${ULTRALINK_DOWNLOAD_BASE:-https://github.com/$repo/releases/download/v$version}"
+# Release notes for the update window: this version's CHANGELOG entry as plain text.
+notes=$(awk -v head="## [$version]" '
+  index($0, head) == 1 { on = 1; next }
+  on && /^## \[/ { exit }
+  on { gsub(/\*\*|`/, ""); sub(/^### /, ""); print }
+' CHANGELOG.md | sed '/./,$!d')
+[ -n "$notes" ] || { echo "CHANGELOG.md has no entry for $version" >&2; exit 1; }
 bin=.build/artifacts/sparkle/Sparkle/bin
 if [ -n "${SPARKLE_KEY_FILE:-}" ]; then
   sig=$("$bin/sign_update" --ed-key-file "$SPARKLE_KEY_FILE" "$dmg")
@@ -28,7 +35,8 @@ cat > "$(dirname "$dmg")/appcast.xml" <<XML
       <sparkle:version>$build</sparkle:version>
       <sparkle:shortVersionString>$version</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
-      <sparkle:releaseNotesLink>https://github.com/$repo/releases/tag/v$version</sparkle:releaseNotesLink>
+      <description sparkle:descriptionFormat="plain-text"><![CDATA[$notes]]></description>
+      <sparkle:fullReleaseNotesLink>https://github.com/$repo/releases/tag/v$version</sparkle:fullReleaseNotesLink>
       <enclosure url="$base/$(basename "$dmg")" type="application/octet-stream" $sig />
     </item>
   </channel>
