@@ -46,7 +46,7 @@ struct SettingsView: View {
                     .confirmationDialog("Erase all saved history?", isPresented: $confirmErase) {
                         Button("Erase", role: .destructive) { monitor.eraseHistory() }
                     } message: { Text("Charts and data totals start over. The dish itself is not touched.") }
-                Text("UltraLink keeps a week of per-minute readings in ~/Library/Application Support/UltraLink. It never sends anything off your Mac and never changes your dish.")
+                Text("UltraLink keeps a week of per-minute readings in ~/Library/Application Support/UltraLink. Readings never leave your Mac, and the dish is never changed.")
                     .font(.caption).foregroundStyle(.secondary)
             }
             Section {

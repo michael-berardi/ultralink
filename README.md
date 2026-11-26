@@ -12,7 +12,7 @@ A macOS menu bar app for Starlink users. See traffic, outages and obstructions w
 
 ## Install and first use
 
-On **macOS 13 or later**, [download UltraLink 0.2.0](https://github.com/michael-berardi/ultralink/releases/download/v0.2.0/UltraLink-0.2.0-mac.dmg), open the DMG and drag UltraLink to Applications. The download is signed and notarized, for Apple silicon and Intel. [Releases and checksums](https://github.com/michael-berardi/ultralink/releases/latest).
+On **macOS 13 or later**, [download UltraLink 0.3.0](https://github.com/michael-berardi/ultralink/releases/download/v0.3.0/UltraLink-0.3.0-mac.dmg), open the DMG and drag UltraLink to Applications. The download is signed and notarized, for Apple silicon and Intel. [Releases and checksums](https://github.com/michael-berardi/ultralink/releases/latest).
 
 Open UltraLink while connected to your Starlink network, then click its menu bar icon. In **Settings › Dish**, enter another address if needed and press Return. If your router is in bypass mode, your network must still provide a route to the dish. Without a dish, enable **Settings › Data › Demo mode**.
 
@@ -34,8 +34,9 @@ UltraLink checks its signed release feed once a day. When a new version is out, 
 
 ## Privacy
 
+- No telemetry, analytics or account. Dish readings never leave this Mac.
 - UltraLink reads the dish on your local network and never changes its settings.
-- History stays on this Mac (a week of per-minute readings). Dish readings are never uploaded.
+- History (a week of per-minute readings) stays in a private folder; **Settings › Data › Erase History…** deletes it.
 - The speed test contacts Apple’s servers, only when you start it.
 - The update check is one anonymous request a day to the GitHub release feed. Turn it off in **Settings › Updates**.
 - Details, including network and polling behavior: [PRIVACY.md](PRIVACY.md).
@@ -59,7 +60,7 @@ swift build -j 4 -c release --arch arm64 --arch x86_64 -Xswiftc -Osize
 tests/unit.sh
 ```
 
-The standalone decoder and update-rule tests need no dish, network or app launch. The optional end-to-end check, `tests/run.sh <dish.protoset>`, requires the built app, Python 3 with `protobuf`, and a descriptor set obtained through gRPC reflection (see [starlink-grpc-tools](https://github.com/sparky8512/starlink-grpc-tools)). It starts a local mock and runs the app’s probe.
+The standalone decoder, update-rule and privacy tests need no dish, network or app launch. The optional end-to-end check, `tests/run.sh <dish.protoset>`, requires the built app, Python 3 with `protobuf`, and a descriptor set obtained through gRPC reflection (see [starlink-grpc-tools](https://github.com/sparky8512/starlink-grpc-tools)). It starts a local mock and runs the app’s probe.
 
 The executable accepts `--probe [host] --port <port>` to print readings once (defaults: `192.168.100.1`, `9201`), and `--demo` for sample data. `--show-popover`, `--show-sky` and `--show-settings` open those views in ordinary windows, and `--snapshot <dir>` saves them as PNGs and quits. These launches skip the background update check unless `--scheduled-check` asks for one.
 

@@ -62,6 +62,7 @@ expect(!updates.isEmpty && updates.count <= 3 && updates.joined().contains("docs
 let privacy = section(readme, "## Privacy")
 expect((3...6).contains(privacy.count) && privacy.joined().contains("PRIVACY.md"), "README Privacy is 3-6 lines and links PRIVACY.md")
 expect(read("PRIVACY.md").contains("anonymous"), "PRIVACY.md describes the update request")
-expect(read("CHANGELOG.md").contains("## [0.2.0]"), "CHANGELOG has the 0.2.0 entry")
+let version = info["CFBundleShortVersionString"] as? String ?? ""
+expect(read("CHANGELOG.md").contains("## [\(version)]"), "CHANGELOG has an entry for the shipped version \(version)")
 
 if failures > 0 { print("\(failures) failed"); exit(1) }
