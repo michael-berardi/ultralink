@@ -12,7 +12,7 @@ A macOS menu bar app for Starlink users. See traffic, outages and obstructions w
 
 ## Install and first use
 
-On **macOS 13 or later**, [download UltraLink 0.2.2](https://github.com/michael-berardi/ultralink/releases/download/v0.2.2/UltraLink-0.2.2-mac.dmg), open the DMG and drag UltraLink to Applications. The download is signed and notarized, for Apple silicon and Intel. [Releases and checksums](https://github.com/michael-berardi/ultralink/releases/latest).
+On **macOS 13 or later**, [download the latest published UltraLink release](https://github.com/michael-berardi/ultralink/releases/latest), open its DMG and drag UltraLink to Applications. The download is signed and notarized, for Apple silicon and Intel. [Releases and checksums](https://github.com/michael-berardi/ultralink/releases/latest); the currently published build is 0.1.1, while this branch is not released yet.
 
 Open UltraLink while connected to your Starlink network, then click its menu bar icon. In **Settings › Dish**, enter another address if needed and press Return. If your router is in bypass mode, your network must still provide a route to the dish. Without a dish, enable **Settings › Data › Demo mode**.
 
@@ -36,7 +36,7 @@ Status is polled every two seconds when the popover is open or the menu bar show
 
 ## Privacy
 
-There is no telemetry, analytics, crash reporting, account, or unique identifier. The only automatic internet request is one anonymous daily check of the signed update feed: it carries a fixed User-Agent and no user id, app version, usage, machine or OS profile. You can turn checks off in **Settings › Updates** or with `ULTRALINK_NO_UPDATE_CHECK=1`; automatic installation is off unless you opt in. See [Updates](docs/updates.md).
+There is no telemetry, analytics, crash reporting, account, or unique identifier. The only automatic internet request is one anonymous daily check of the signed update feed, bounded to four seconds: it carries a fixed User-Agent and no user id, app version, usage, machine or OS profile. You can turn checks off in **Settings › Updates** or with `ULTRALINK_NO_UPDATE_CHECK=1`; automatic installation is off unless you opt in. See [Updates](docs/updates.md).
 
 It polls the dish at the address you set (default `192.168.100.1:9201`) over your local network. Those read-only requests contain no readings; dish data stays on your Mac. If you press **Start** on the speed test, macOS `networkQuality` contacts Apple’s servers. Sparkle fetches the signed GitHub feed for **Check Now** or automatic checks; an available update is downloaded from GitHub and verified with UltraLink’s key before installation. Links you click open in your browser.
 

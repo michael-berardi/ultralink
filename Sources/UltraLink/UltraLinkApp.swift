@@ -68,6 +68,9 @@ final class Updates: ObservableObject {
     /// The user-facing opt-out; only this forces the Settings controls off.
     static var optedOut: Bool { ProcessInfo.processInfo.environment["ULTRALINK_NO_UPDATE_CHECK"] == "1" }
 
+    /// Register the four-second feed relay once, before Sparkle creates any request session.
+    private static let feedTimeoutRegistration: Void = { _ = URLProtocol.registerClass(UpdateFeedProtocol.self) }()
+
     /// No feed request at all for an explicit opt-out, CI, or headless/probe/snapshot runs.
     static var checksSuppressed: Bool {
         let env = ProcessInfo.processInfo.environment
@@ -82,11 +85,13 @@ final class Updates: ObservableObject {
         // startingUpdater: false keeps the feed request off this call; startUpdater() schedules the
         // daily background check only when checks are allowed. Sparkle reads the Info.plist default
         // (true) unless the user has explicitly saved a different choice in its own defaults.
+        _ = Self.feedTimeoutRegistration
         let c = SPUStandardUpdaterController(startingUpdater: false, updaterDelegate: nil, userDriverDelegate: nil)
         controller = c
-        // Fixed, non-identifying User-Agent. SUSendProfileInfo=false in Info.plist suppresses
-        // machine/OS profile parameters, so the GET carries no client id, version or usage data.
-        c.updater.httpHeaders = ["User-Agent": "ultralink-update-check"]
+        // Sparkle's own API for the User-Agent of update requests. SUSendProfileInfo=false in
+        // Info.plist suppresses machine/OS profile parameters, so the GET carries no client id,
+        // version or usage data. UpdateFeedProtocol caps that GET at four seconds.
+        c.updater.userAgentString = "ultralink-update-check"
         guard !Self.checksSuppressed else { return }
         c.startUpdater()
     }

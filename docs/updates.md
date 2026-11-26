@@ -6,8 +6,8 @@ UltraLink follows the project's update contract: it tells you about a newer rele
 
 ## Checking
 
-- Fresh installs check the signed Sparkle feed at most once every 24 hours, in the background, with a short timeout. The feed is the project's public GitHub latest-release record.
-- The check is one anonymous GET with the fixed User-Agent `ultralink-update-check`. It sends no user id, app version, usage, machine or OS profile; `SUSendProfileInfo` is off.
+- Fresh installs check the signed Sparkle feed at most once every 24 hours, in the background. The feed is the project's public GitHub latest-release record. Sparkle 2.10 has no public appcast timeout property, so `UpdateFeedProtocol` relays only this GET through a Foundation session with a four-second request and resource timeout; update downloads are unchanged.
+- The check is one anonymous GET with the fixed User-Agent `ultralink-update-check`, set through Sparkle's `userAgentString` API. It sends no user id, app version, usage, machine or OS profile; `SUSendProfileInfo` is off.
 - A failed check is logged locally and never shown as noise or retried in a loop.
 - Checks are on by default in interactive use. They are off in CI and headless modes (`--probe`, `--snapshot`).
 

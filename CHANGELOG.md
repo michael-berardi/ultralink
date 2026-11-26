@@ -2,6 +2,18 @@
 
 Changes are recorded in [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.2.3] - 2026-11-26
+
+### Fixed
+
+- Update checks now set the fixed User-Agent through Sparkle's `userAgentString` API instead of `httpHeaders`, and the signed feed GET is bounded to four seconds by `UpdateFeedProtocol` (Sparkle 2.10 exposes no appcast timeout property).
+- The README download link points to the published latest release instead of a branch-only 0.2.2 asset.
+- **Settings › Updates** keeps one short caption and no duplicate version label; the version remains in the footer.
+
+### Added
+
+- Privacy and standalone unit checks for the User-Agent API, the four-second feed timeout and the bounded GET.
+
 ## [0.2.2] - 2026-11-26
 
 ### Fixed

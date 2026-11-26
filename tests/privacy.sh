@@ -11,10 +11,22 @@ if grep -REIni '(sentry|bugsnag|posthog|mixpanel|amplitude|google-analytics|goog
   fail "telemetry package or endpoint found"
 fi
 
-# No general HTTP client: the only socket in the app is the local dish transport.
-if grep -RIn 'URLSession' Sources | grep -v ':[0-9]*: *//'; then
-  fail "URLSession found in shipped code"
+# No general HTTP client: the dish transport is local, and URLSession is used only
+# by the bounded signed-feed relay (never for telemetry or dish data).
+feed=Sources/UltraLink/UpdateFeedProtocol.swift
+if grep -RIn 'URLSession' Sources | grep -v "^$feed:" | grep -v ':[0-9]*: *//'; then
+  fail "URLSession found outside the update-feed relay"
 fi
+grep -qF 'configuration.timeoutIntervalForRequest = Self.timeout' "$feed" ||
+  fail "feed request has no bounded timeout"
+grep -qF 'configuration.timeoutIntervalForResource = Self.timeout' "$feed" ||
+  fail "feed resource has no bounded timeout"
+grep -qF 'static let timeout: TimeInterval = 4' "$feed" ||
+  fail "feed timeout is not four seconds"
+grep -qF '/releases/latest/download/appcast.xml' "$feed" ||
+  fail "feed relay is not scoped to the signed appcast URL"
+grep -qF 'url == feedURL || url.hasPrefix(feedURL + "?")' "$feed" ||
+  fail "feed relay URL match is not exact"
 
 # Every URL in the shipped app must be one already documented in the README.
 urls=$(grep -RhoE 'https?://[^"[:space:]<)]+' Sources Resources/Info.plist | sort -u || true)
@@ -38,7 +50,16 @@ grep -A1 '<key>SUScheduledCheckInterval</key>' Resources/Info.plist | grep -q '<
 app=Sources/UltraLink/UltraLinkApp.swift
 if grep -q 'startingUpdater: true' "$app"; then fail "updater starts before the opt-out is evaluated"; fi
 grep -qF 'ULTRALINK_NO_UPDATE_CHECK' "$app" || fail "environment opt-out is missing"
-grep -qF '"User-Agent": "ultralink-update-check"' "$app" || fail "update check User-Agent is not fixed"
+grep -qF 'c.updater.userAgentString = "ultralink-update-check"' "$app" ||
+  fail "fixed User-Agent is not set through Sparkle's userAgentString API"
+if grep -qF '.httpHeaders =' "$app"; then fail "update User-Agent still uses httpHeaders"; fi
+grep -qF 'URLProtocol.registerClass(UpdateFeedProtocol.self)' "$app" ||
+  fail "bounded update-feed relay is not registered"
+if grep -qE 'releases/download/v0\.[0-9]+\.[0-9]+/UltraLink' README.md; then
+  fail "README links to a version-pinned asset"
+fi
+grep -qF '[download the latest published UltraLink release](https://github.com/michael-berardi/ultralink/releases/latest)' README.md ||
+  fail "README download link is not the published latest release"
 grep -qF 'displayedUpdateState(key: "SUEnableAutomaticChecks", plistDefault: true)' "$app" ||
   fail "automatic update state does not default to on"
 grep -qF 'displayedUpdateState(key: "SUAutomaticallyUpdate", plistDefault: false)' "$app" ||

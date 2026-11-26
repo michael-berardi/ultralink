@@ -38,12 +38,11 @@ struct SettingsView: View {
                     .disabled(updates.disabled || !updates.automatic)
                 Button("Check Now") { updates.checkForUpdates() }
                     .disabled(updates.disabled)
-                Text("Current version: UltraLink \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "")")
                 if updates.disabled {
-                    Text("Checks are off for this run (ULTRALINK_NO_UPDATE_CHECK=1, CI, or a headless mode). Restart without that setting to change this.")
+                    Text("Checks are off for this run; restart without the opt-out to change this.")
                         .font(.caption).foregroundStyle(.secondary)
                 } else {
-                    Text("One anonymous check of the signed GitHub feed a day; no system profile is sent. Updates are verified before installation; automatic installation is off until you opt in.")
+                    Text("Anonymous, once a day; no system profile, signed updates.")
                         .font(.caption).foregroundStyle(.secondary)
                 }
             }
