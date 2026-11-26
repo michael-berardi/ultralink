@@ -6,14 +6,16 @@ UltraLink follows the project's update contract: it tells you about a newer rele
 
 ## Checking
 
-- Fresh installs check the signed Sparkle feed at most once every 24 hours, in the background. The feed is the project's public GitHub latest-release record. Sparkle 2.10 has no public appcast timeout property, so `UpdateFeedProtocol` relays only this GET through a Foundation session with a four-second request and resource timeout; update downloads are unchanged.
+- Fresh installs check the signed Sparkle feed at most once every 24 hours, in the background. The feed is the project's public GitHub latest-release record.
 - The check is one anonymous GET with the fixed User-Agent `ultralink-update-check`, set through Sparkle's `userAgentString` API. It sends no user id, app version, usage, machine or OS profile; `SUSendProfileInfo` is off.
+- **Timeout gap:** `UpdateFeedProtocol` is registered globally, but the four-second request and resource timeout is proven only for a session that includes the relay; the standalone unit test uses `URLSession.shared`. Sparkle 2.10 creates its appcast request in its own private `NSURLSession` from the default configuration, and Sparkle's private session does not honor the relay. The app therefore cannot enforce a four-second timeout on Sparkle's own feed request; Sparkle's session defaults apply. Do not assume a four-second cap for automatic checks or **Check Now**. Update downloads are not relayed.
 - A failed check is logged locally and never shown as noise or retried in a loop.
 - Checks are on by default in interactive use. They are off in CI and headless modes (`--probe`, `--snapshot`).
 
 ## Choosing
 
-- **Settings › Updates** has **Check for updates automatically** (on for fresh installs), **Check Now**, and the current version. Your later choice is saved by Sparkle and is not overwritten at launch, so an existing opt-out stays off.
+- **Settings › Updates** has **Check for updates automatically** (on for fresh installs), **Install updates automatically** (off for fresh installs), **Check Now** aligned with those controls, and the current version beside **Check Now** (`Version 0.2.4` in this build). There is no explanatory caption under the controls; with the run-time opt-out, the only caption is **Checks are off for this run.**
+- Your later choice is saved by Sparkle and is not overwritten at launch, so an existing opt-out stays off.
 - To turn checks off for a run or for every launch, set `ULTRALINK_NO_UPDATE_CHECK=1`, or turn off **Check for updates automatically** in Settings. Turning checks off also turns off automatic installation.
 - A found update produces a non-modal prompt with the version, release notes, **Install Update**, **Remind Me Later** and **Skip This Version**. **Automatically download and install updates in the future** is unchecked until you check it.
 

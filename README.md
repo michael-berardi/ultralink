@@ -36,7 +36,7 @@ Status is polled every two seconds when the popover is open or the menu bar show
 
 ## Privacy
 
-There is no telemetry, analytics, crash reporting, account, or unique identifier. The only automatic internet request is one anonymous daily check of the signed update feed, bounded to four seconds: it carries a fixed User-Agent and no user id, app version, usage, machine or OS profile. You can turn checks off in **Settings › Updates** or with `ULTRALINK_NO_UPDATE_CHECK=1`; automatic installation is off unless you opt in. See [Updates](docs/updates.md).
+There is no telemetry, analytics, crash reporting, account, or unique identifier. The only automatic internet request is one anonymous daily check of the signed update feed: it carries a fixed User-Agent and no user id, app version, usage, machine or OS profile. Sparkle sends it through its own private session, so UltraLink cannot enforce a four-second timeout on that request; [Updates](docs/updates.md) records the exact gap. You can turn checks off in **Settings › Updates** or with `ULTRALINK_NO_UPDATE_CHECK=1`; automatic installation is off unless you opt in.
 
 It polls the dish at the address you set (default `192.168.100.1:9201`) over your local network. Those read-only requests contain no readings; dish data stays on your Mac. If you press **Start** on the speed test, macOS `networkQuality` contacts Apple’s servers. Sparkle fetches the signed GitHub feed for **Check Now** or automatic checks; an available update is downloaded from GitHub and verified with UltraLink’s key before installation. Links you click open in your browser.
 
@@ -46,7 +46,7 @@ The only third parties are Apple (speed test) and GitHub (updates and links), co
 
 ## Updates
 
-UltraLink checks for a newer release once a day by default, with a non-modal prompt and a one-step install. Fresh installs have automatic checks on and automatic installation off; your Settings choices are preserved. Turn checks off in **Settings › Updates** or with `ULTRALINK_NO_UPDATE_CHECK=1`. See [docs/updates.md](docs/updates.md) for the full update and privacy contract.
+UltraLink checks for a newer release once a day by default, with a non-modal prompt and a one-step install. Fresh installs have automatic checks on and automatic installation off; your Settings choices are preserved. Turn checks off in **Settings › Updates** or with `ULTRALINK_NO_UPDATE_CHECK=1`. **Settings › Updates** also shows the current version next to **Check Now**. See [docs/updates.md](docs/updates.md) for the full update and privacy contract, including the Sparkle feed timeout gap.
 
 ## Build from source
 

@@ -2,17 +2,24 @@
 
 Changes are recorded in [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.2.4] - 2026-11-26
+
+### Fixed
+
+- **Settings › Updates** now shows the current version beside **Check Now**, with the button aligned to the other controls. The redundant explanatory caption is gone, the opt-out notice is a short status line, and the footer no longer repeats the version.
+- `docs/updates.md`, the README and the source comments no longer claim a four-second cap on Sparkle's own feed request. The standalone test proves that cap only for a session using `UpdateFeedProtocol`; Sparkle 2.10's private session does not honor the relay, so the app cannot enforce it on Sparkle's feed GET. The exact gap is recorded in `docs/updates.md`.
+
 ## [0.2.3] - 2026-11-26
 
 ### Fixed
 
-- Update checks now set the fixed User-Agent through Sparkle's `userAgentString` API instead of `httpHeaders`, and the signed feed GET is bounded to four seconds by `UpdateFeedProtocol` (Sparkle 2.10 exposes no appcast timeout property).
+- Update checks now set the fixed User-Agent through Sparkle's `userAgentString` API instead of `httpHeaders`. A four-second `UpdateFeedProtocol` relay was added; a later review found that Sparkle's feed session does not use it (see 0.2.4).
 - The README download link points to the published latest release instead of a branch-only 0.2.2 asset.
-- **Settings › Updates** keeps one short caption and no duplicate version label; the version remains in the footer.
+- **Settings › Updates** kept one short caption and no duplicate version label; the version was in the footer.
 
 ### Added
 
-- Privacy and standalone unit checks for the User-Agent API, the four-second feed timeout and the bounded GET.
+- Privacy and standalone unit checks for the User-Agent API, the relay's four-second timeout in a test session and the bounded GET.
 
 ## [0.2.2] - 2026-11-26
 

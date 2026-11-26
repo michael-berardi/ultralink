@@ -69,6 +69,7 @@ final class Updates: ObservableObject {
     static var optedOut: Bool { ProcessInfo.processInfo.environment["ULTRALINK_NO_UPDATE_CHECK"] == "1" }
 
     /// Register the four-second feed relay once, before Sparkle creates any request session.
+    /// Sparkle's private session does not honor this registration; see docs/updates.md.
     private static let feedTimeoutRegistration: Void = { _ = URLProtocol.registerClass(UpdateFeedProtocol.self) }()
 
     /// No feed request at all for an explicit opt-out, CI, or headless/probe/snapshot runs.
@@ -90,7 +91,8 @@ final class Updates: ObservableObject {
         controller = c
         // Sparkle's own API for the User-Agent of update requests. SUSendProfileInfo=false in
         // Info.plist suppresses machine/OS profile parameters, so the GET carries no client id,
-        // version or usage data. UpdateFeedProtocol caps that GET at four seconds.
+        // version or usage data. UpdateFeedProtocol would cap a matching GET at four seconds in
+        // a session that uses it, but Sparkle's own session does not; see docs/updates.md.
         c.updater.userAgentString = "ultralink-update-check"
         guard !Self.checksSuppressed else { return }
         c.startUpdater()

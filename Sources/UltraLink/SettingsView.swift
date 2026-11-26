@@ -12,6 +12,10 @@ struct SettingsView: View {
     @State private var confirmErase = false
     @StateObject private var updates = Updates.shared
 
+    private var appVersion: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
+    }
+
     var body: some View {
         Form {
             Section("Dish") {
@@ -36,13 +40,15 @@ struct SettingsView: View {
                     .disabled(updates.disabled)
                 Toggle("Install updates automatically", isOn: Binding(get: { updates.autoInstall }, set: { updates.autoInstall = $0 }))
                     .disabled(updates.disabled || !updates.automatic)
-                Button("Check Now") { updates.checkForUpdates() }
-                    .disabled(updates.disabled)
-                if updates.disabled {
-                    Text("Checks are off for this run; restart without the opt-out to change this.")
+                HStack {
+                    Button("Check Now") { updates.checkForUpdates() }
+                        .disabled(updates.disabled)
+                    Spacer()
+                    Text("Version \(appVersion)")
                         .font(.caption).foregroundStyle(.secondary)
-                } else {
-                    Text("Anonymous, once a day; no system profile, signed updates.")
+                }
+                if updates.disabled {
+                    Text("Checks are off for this run.")
                         .font(.caption).foregroundStyle(.secondary)
                 }
             }
@@ -57,7 +63,6 @@ struct SettingsView: View {
             }
             Section {
                 HStack {
-                    Text("UltraLink \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "")")
                     Spacer()
                     Link("Source on GitHub", destination: URL(string: "https://github.com/michael-berardi/ultralink")!)
                 }.font(.caption).foregroundStyle(.secondary)

@@ -29,9 +29,10 @@ let number = try message.next()?.1.uint; precondition(number == 1)
 precondition(message.isAtEnd)
 print("PASS: valid fields")
 
-// The feed relay must cap a stalled signed-feed GET at UpdateFeedProtocol.timeout.
-precondition(UpdateFeedProtocol.timeout <= 4, "feed check timeout exceeds four seconds")
-print("PASS: feed timeout constant <= 4s")
+// The relay caps a stalled GET at UpdateFeedProtocol.timeout in a session that uses it.
+// Sparkle's private feed session does not use this relay; see docs/updates.md.
+precondition(UpdateFeedProtocol.timeout <= 4, "feed relay timeout exceeds four seconds")
+print("PASS: feed relay timeout constant <= 4s")
 
 func feedRequest(_ string: String) -> URLRequest {
     URLRequest(url: URL(string: string)!)
@@ -41,7 +42,7 @@ precondition(UpdateFeedProtocol.canInit(with: feedRequest(appcast)), "signed fee
 precondition(UpdateFeedProtocol.canInit(with: feedRequest(appcast + "?q=1")), "feed with parameters is not relayed")
 precondition(!UpdateFeedProtocol.canInit(with: feedRequest("https://github.com/michael-berardi/ultralink/releases/download/v0.2.3/UltraLink-0.2.3-mac.dmg")), "update download must not be relayed")
 precondition(!UpdateFeedProtocol.canInit(with: feedRequest("https://example.com/appcast.xml")), "unrelated URL must not be relayed")
-print("PASS: timeout relay is scoped to the signed feed only")
+print("PASS: timeout relay is scoped to the signed feed only (Sparkle session not proven)")
 
 if let feed = ProcessInfo.processInfo.environment["ULTRALINK_TEST_FEED_URL"], let url = URL(string: feed) {
     URLProtocol.registerClass(UpdateFeedProtocol.self)
@@ -62,5 +63,5 @@ if let feed = ProcessInfo.processInfo.environment["ULTRALINK_TEST_FEED_URL"], le
     }
     precondition(urlError.code == .timedOut, "expected a timeout, got \(urlError.code.rawValue)")
     precondition(elapsed >= 3 && elapsed <= 5.5, "unexpected timeout duration: \(elapsed)s")
-    print("PASS: stalled feed GET timed out in \(String(format: "%.1f", elapsed))s")
+    print("PASS: stalled feed GET through URLSession.shared relay timed out in \(String(format: "%.1f", elapsed))s")
 }

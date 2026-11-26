@@ -1,10 +1,11 @@
 import Foundation
 
-/// Sparkle 2.10 builds the appcast request with Foundation's default 60-second
-/// timeout and does not expose an appcast timeout property. This protocol relays
-/// *only the signed feed GET* through a session whose request and resource
-/// timeouts are four seconds. Update downloads, release notes and every other
-/// request keep using Sparkle's own downloader unchanged.
+/// This protocol relays *only the signed feed GET* through a session whose request
+/// and resource timeouts are four seconds when that session uses the relay.
+/// It is registered globally, but Sparkle 2.10 builds its appcast request in a
+/// private NSURLSession that does not honor the registration, so the app does not
+/// enforce four seconds on Sparkle's feed GET; see docs/updates.md. Update
+/// downloads, release notes and every other request use Sparkle's own downloader.
 final class UpdateFeedProtocol: URLProtocol, URLSessionDataDelegate {
     static let timeout: TimeInterval = 4
     private static let handledKey = "UltraLinkFeedRelayed"

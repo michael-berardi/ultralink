@@ -69,6 +69,15 @@ grep -qF 'UserDefaults.standard.object(forKey: key) as? NSNumber' "$app" ||
 grep -qF 'Bundle.main.object(forInfoDictionaryKey: key) as? NSNumber' "$app" ||
   fail "Settings ignores the Info.plist update default"
 
+# The four-second cap is proven for the relay's own session only, not Sparkle's.
+grep -qF "Sparkle's private session does not honor the relay" docs/updates.md ||
+  fail "update docs omit the Sparkle relay gap"
+grep -qF 'cannot enforce a four-second timeout on Sparkle' docs/updates.md ||
+  fail "update docs must state that Sparkle's timeout is not enforced"
+if grep -qF 'signed update feed, bounded to four seconds' README.md; then
+  fail "README still claims a proven cap on Sparkle's feed request"
+fi
+
 # User readings on disk must stay private, including the unreadable-file backup.
 store=Sources/UltraLink/Store.swift
 grep -qF '.posixPermissions: 0o700' "$store" || fail "history directory is not private"
