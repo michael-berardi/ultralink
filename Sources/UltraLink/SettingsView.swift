@@ -32,8 +32,10 @@ struct SettingsView: View {
                 Toggle("Notify me about outages", isOn: $notify).onChange(of: notify) { if $0 { monitor.requestNotificationPermission() } }
             }
             Section("Updates") {
-                Toggle("Check for updates automatically", isOn: Binding(get: { updates.automatic }, set: { updates.automatic = $0 }))
+                Toggle("Check GitHub for updates automatically", isOn: Binding(get: { updates.automatic }, set: { updates.automatic = $0 }))
                 Button("Check Now") { updates.checkForUpdates() }
+                Text("Off by default. UltraLink contacts GitHub only when you check now or turn this on. Updates are signed and verified before installation.")
+                    .font(.caption).foregroundStyle(.secondary)
             }
             Section("Data") {
                 Toggle("Demo mode", isOn: $demo).onChange(of: demo) { monitor.configure(demo: $0) }

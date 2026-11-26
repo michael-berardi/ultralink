@@ -12,7 +12,7 @@ A macOS menu bar app for Starlink users. See traffic, outages and obstructions w
 
 ## Install and first use
 
-On **macOS 13 or later**, [download UltraLink 0.1.1](https://github.com/michael-berardi/ultralink/releases/download/v0.1.1/UltraLink-0.1.1-mac.dmg), open the DMG and drag UltraLink to Applications. The download is signed and notarized, for Apple silicon and Intel. [Releases and checksums](https://github.com/michael-berardi/ultralink/releases/latest).
+On **macOS 13 or later**, [download UltraLink 0.2.0](https://github.com/michael-berardi/ultralink/releases/download/v0.2.0/UltraLink-0.2.0-mac.dmg), open the DMG and drag UltraLink to Applications. The download is signed and notarized, for Apple silicon and Intel. [Releases and checksums](https://github.com/michael-berardi/ultralink/releases/latest).
 
 Open UltraLink while connected to your Starlink network, then click its menu bar icon. In **Settings › Dish**, enter another address if needed and press Return. If your router is in bypass mode, your network must still provide a route to the dish. Without a dish, enable **Settings › Data › Demo mode**.
 
@@ -28,13 +28,21 @@ Open UltraLink while connected to your Starlink network, then click its menu bar
 
 Data totals come from the dish’s recent history. UltraLink can recover up to about 15 minutes when it starts; longer gaps are not counted. Totals are not billing measurements.
 
-## Network and privacy
+## Network and setup
 
 The dish’s unofficial gRPC-web API is normally at `192.168.100.1:9201`. Firmware changes may affect compatibility. UltraLink tries the default route, then Wi-Fi and Ethernet interfaces, which can help when a VPN takes over the default route. This does not guarantee access through every VPN or router configuration.
 
 Status is polled every two seconds when the popover is open or the menu bar shows speeds or latency, otherwise every six seconds. Failed polls use a five-second delay. History is refreshed every ten seconds with the popover open, otherwise every minute. Request time adds to these intervals.
 
-History stays in the user’s Application Support directory under `UltraLink/history.json`. The app keeps per-minute readings for a week. Speed tests contact Apple’s servers; Sparkle update checks contact GitHub daily by default. Disable automatic checks in **Settings › Updates**. Dish readings are not uploaded by the app.
+## Privacy
+
+By default UltraLink sends nothing to the internet. There is no telemetry, analytics, crash reporting, account, or unique identifier.
+
+It polls the dish at the address you set (default `192.168.100.1:9201`) over your local network. Those read-only requests contain no readings; dish data stays on your Mac. If you press **Start** on the speed test, macOS `networkQuality` contacts Apple’s servers. If you press **Check Now**, or turn on automatic checks in **Settings › Updates** (off by default), Sparkle fetches the signed update feed from GitHub; an available update is downloaded from GitHub and verified with UltraLink’s key before installation. Links you click open in your browser.
+
+Local history — one week of per-minute readings, up to 400 daily totals and 200 outages — is in `~/Library/Application Support/UltraLink/history.json`. That folder is 0700 and the file is 0600. UltraLink’s own logs contain no readings, dish ID, addresses or paths; demo mode writes nothing. To delete the data, use **Settings › Data › Erase History…** or delete `~/Library/Application Support/UltraLink`.
+
+The only third parties are Apple (speed test) and GitHub (updates and links), contacted only as described above.
 
 ## Build from source
 
@@ -55,7 +63,7 @@ swift build -j 4 -c release --arch arm64 --arch x86_64 -Xswiftc -Osize
 tests/unit.sh
 ```
 
-The standalone decoder tests need no dish or app launch. The optional end-to-end check, `tests/run.sh <dish.protoset>`, requires the built app, Python 3 with `protobuf`, and a descriptor set obtained through gRPC reflection (see [starlink-grpc-tools](https://github.com/sparky8512/starlink-grpc-tools)). It starts a local mock and runs the app’s probe.
+The standalone decoder and privacy tests need no dish or app launch. The optional end-to-end check, `tests/run.sh <dish.protoset>`, requires the built app, Python 3 with `protobuf`, and a descriptor set obtained through gRPC reflection (see [starlink-grpc-tools](https://github.com/sparky8512/starlink-grpc-tools)). It starts a local mock and runs the app’s probe.
 
 The executable accepts `--probe [host] --port <port>` to print readings once (defaults: `192.168.100.1`, `9201`), and `--demo` for sample data. `--show-popover`, `--show-sky` and `--show-settings` open those views in ordinary windows.
 

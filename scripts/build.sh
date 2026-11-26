@@ -5,6 +5,9 @@
 set -eu
 cd "$(dirname "$0")/.."
 
+# No build tooling should collect usage data, if it honours the standard opt-out.
+export DO_NOT_TRACK=1
+
 swift build -j 4 -c release --arch arm64 --arch x86_64 -Xswiftc -Osize
 bin="$(swift build -j 4 -c release --arch arm64 --arch x86_64 -Xswiftc -Osize --show-bin-path)/UltraLink"
 

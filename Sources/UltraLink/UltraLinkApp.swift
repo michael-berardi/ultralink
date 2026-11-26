@@ -57,13 +57,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
-/// Signed updates through Sparkle: a daily check against the GitHub release feed (SUFeedURL),
-/// verified with the EdDSA key in Info.plist before anything is installed.
+/// Signed updates through Sparkle. Checks are off by default: the GitHub feed is fetched only when
+/// the user presses Check Now or explicitly enables automatic checks. Downloads are verified with
+/// the EdDSA key in Info.plist before anything is installed.
 final class Updates: ObservableObject {
     static let shared = Updates()
     private var controller: SPUStandardUpdaterController?
 
-    func start() { controller = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil) }
+    func start() {
+        let c = SPUStandardUpdaterController(startingUpdater: false, updaterDelegate: nil, userDriverDelegate: nil)
+        controller = c
+        // Fresh installs stay off; a user's later choice in Settings is preserved.
+        // Set before starting the updater so no scheduled feed request can be made at launch.
+        if UserDefaults.standard.object(forKey: "SUEnableAutomaticChecks") == nil {
+            c.updater.automaticallyChecksForUpdates = false
+        }
+        c.startUpdater()
+    }
 
     func checkForUpdates() {
         NSApp.activate(ignoringOtherApps: true)
@@ -71,7 +81,7 @@ final class Updates: ObservableObject {
     }
 
     var automatic: Bool {
-        get { controller?.updater.automaticallyChecksForUpdates ?? true }
+        get { controller?.updater.automaticallyChecksForUpdates ?? false }
         set { controller?.updater.automaticallyChecksForUpdates = newValue; objectWillChange.send() }
     }
 }

@@ -2,6 +2,17 @@
 
 Changes are recorded in [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.2.0] - 2026-11-26
+
+### Changed
+
+- Sparkle update checks are off by default; the GitHub feed is fetched only when you use Check Now or enable automatic checks in Settings.
+- History directory and file are created with private permissions (0700/0600); Erase History also removes an unreadable-file backup.
+
+### Added
+
+- A `## Privacy` section in the README and a privacy regression check in `tests/unit.sh`.
+
 ## [0.1.1] - 2026-11-15
 
 ### Fixed

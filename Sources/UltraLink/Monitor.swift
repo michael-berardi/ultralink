@@ -135,7 +135,7 @@ final class Monitor: ObservableObject {
         } catch {
             failures += 1
             lastError = error.localizedDescription
-            NSLog("UltraLink: poll failed (\(failures)): \(error.localizedDescription)")
+            NSLog("UltraLink: poll failed (%d)", failures)
             if failures >= 2 { setState(.offline(error.localizedDescription)) }
         }
     }
@@ -188,7 +188,7 @@ final class Monitor: ObservableObject {
             let content = UNMutableNotificationContent()
             content.title = title; content.body = body; content.sound = .default
             UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)) { error in
-                if let error { NSLog("UltraLink: notification failed: \(error.localizedDescription)") }
+                if error != nil { NSLog("UltraLink: notification failed") }
             }
         }
     }
@@ -196,7 +196,7 @@ final class Monitor: ObservableObject {
     func requestNotificationPermission() {
         guard Bundle.main.bundleIdentifier != nil else { return }
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { granted, error in
-            if let error { NSLog("UltraLink: notification permission error: \(error.localizedDescription)") }
+            if error != nil { NSLog("UltraLink: notification permission error") }
             else if !granted { NSLog("UltraLink: notification permission was not granted") }
         }
     }
@@ -357,6 +357,6 @@ enum LoginItem {
     static var enabled: Bool { SMAppService.mainApp.status == .enabled }
     static func set(_ on: Bool) {
         do { on ? try SMAppService.mainApp.register() : try SMAppService.mainApp.unregister() }
-        catch { NSLog("UltraLink: launch at login failed: \(error.localizedDescription)") }
+        catch { NSLog("UltraLink: launch at login failed") }
     }
 }
