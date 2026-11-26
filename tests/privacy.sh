@@ -34,7 +34,7 @@ optout=$(grep -n 'c.updater.automaticallyChecksForUpdates = false' "$app" | cut 
 startup=$(grep -n 'c.startUpdater()' "$app" | cut -d: -f1)
 [ -n "$optout" ] && [ -n "$startup" ] && [ "$optout" -lt "$startup" ] ||
   fail "automatic checks are not disabled before startUpdater"
-grep -q '?? false' "$app" || fail "automatic update state defaults to on"
+grep -qF 'automaticallyChecksForUpdates ?? false' "$app" || fail "automatic update state defaults to on"
 
 # User readings on disk must stay private, including the unreadable-file backup.
 store=Sources/UltraLink/Store.swift
