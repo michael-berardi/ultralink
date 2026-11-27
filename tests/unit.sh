@@ -3,7 +3,7 @@
 set -eu
 cd "$(dirname "$0")/.."
 mkdir -p .build
-swiftc -D DEBUG -module-cache-path .build/module-cache Sources/UltraLink/Models.swift Sources/UltraLink/Protobuf.swift Sources/UltraLink/UpdateFeedProtocol.swift tests/unit/main.swift -o .build/unit-tests
+swiftc -D DEBUG -module-cache-path .build/module-cache Sources/UltraLink/Models.swift Sources/UltraLink/Protobuf.swift Sources/UltraLink/UpdateFeedProtocol.swift Sources/UltraLink/Store.swift Sources/UltraLink/Retention.swift tests/unit/main.swift -o .build/unit-tests
 
 # The slow server is loopback-only and exists solely to prove the four-second cap.
 python3 tests/slow_feed.py 19203 >/dev/null 2>&1 &

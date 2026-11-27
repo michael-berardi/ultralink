@@ -51,6 +51,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ note: Notification) {
         NSApp.setActivationPolicy(.accessory)
         Monitor.shared.start()
+        // Bounded local cleanup first: stale unreadable-history copies, stale update downloads and
+        // stale temporary files. It only deletes, never writes, and demo mode leaves the disk alone.
+        if !Monitor.shared.demo { Retention.sweep() }
         Updates.shared.start()
         if Monitor.shared.notifies { Monitor.shared.requestNotificationPermission() }
         QA.showRequestedWindows()

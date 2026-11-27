@@ -85,6 +85,45 @@ grep -qF '.posixPermissions: mode' "$store" || fail "history attributes are not 
 grep -qF 'protect(url, 0o600)' "$store" || fail "history file is not private"
 grep -qF 'protect(backup, 0o600)' "$store" || fail "backup is not private"
 
+# The README keeps a short summary and PRIVACY.md keeps the detail.
+[ -f PRIVACY.md ] || fail "PRIVACY.md is missing"
+grep -qF '(PRIVACY.md)' README.md || fail "README does not link to PRIVACY.md"
+privacy_lines=$(awk '/^## Privacy$/{f=1;next} /^## /{f=0} f && NF' README.md | wc -l | tr -d ' ')
+[ "$privacy_lines" -ge 3 ] && [ "$privacy_lines" -le 6 ] ||
+  fail "README Privacy section is not 3-6 lines ($privacy_lines)"
+if awk '/^## Privacy$/{f=1;next} /^## /{f=0} f' README.md | grep -qE 'Application Support|Library/Caches|defaults delete'; then
+  fail "README Privacy section still carries the local-path detail"
+fi
+for detail in 'history.json' 'history.unreadable.json' 'com.libertydesignstudio.ultralink' \
+              'Library/Caches' 'TMPDIR' 'networkQuality'; do
+  grep -qF "$detail" PRIVACY.md || fail "PRIVACY.md omits $detail"
+done
+
+# Every local write has a bounded lifetime enforced by the launch sweep.
+ret=Sources/UltraLink/Retention.swift
+[ -f "$ret" ] || fail "Retention.swift is missing"
+grep -qF 'static let unreadableHistory: TimeInterval = 7 * 86_400' "$ret" ||
+  fail "unreadable-history backup has no seven-day bound"
+grep -qF 'static let updateDownload: TimeInterval = 7 * 86_400' "$ret" ||
+  fail "update downloads have no seven-day bound"
+grep -qF 'static let temporary: TimeInterval = 86_400' "$ret" ||
+  fail "temporary files have no one-day bound"
+grep -qF 'static func sweep(' "$ret" || fail "retention sweep is missing"
+grep -qF 'names: [unreadableName]' "$ret" ||
+  fail "sweep does not limit the history folder to its own backup"
+grep -qF 'Retention.sweep()' Sources/UltraLink/UltraLinkApp.swift ||
+  fail "retention sweep is not run at launch"
+grep -qF 'if !Monitor.shared.demo { Retention.sweep() }' Sources/UltraLink/UltraLinkApp.swift ||
+  fail "retention sweep is not skipped in demo mode"
+grep -qF 'static var directoryPath: URL' "$store" ||
+  fail "Store creates the history folder before the sweep can run"
+grep -qF 'Retention.unreadableName' "$store" ||
+  fail "Store and Retention disagree on the backup name"
+grep -qF 'Sources/UltraLink/Retention.swift' tests/unit.sh ||
+  fail "the retention test is not compiled"
+grep -qF 'retention sweep bounds unreadable-history copies' tests/unit/main.swift ||
+  fail "the retention regression test is missing"
+
 # Log messages must not carry addresses, paths or readings.
 if grep -REIn 'NSLog\([^)]*localizedDescription|os_log\([^)]*localizedDescription' Sources; then
   fail "unfiltered error detail in logs"

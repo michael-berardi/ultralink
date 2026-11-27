@@ -12,7 +12,7 @@ A macOS menu bar app for Starlink users. See traffic, outages and obstructions w
 
 ## Install and first use
 
-On **macOS 13 or later**, [download the latest published UltraLink release](https://github.com/michael-berardi/ultralink/releases/latest), open its DMG and drag UltraLink to Applications. The download is signed and notarized, for Apple silicon and Intel. [Releases and checksums](https://github.com/michael-berardi/ultralink/releases/latest); the published download is [v0.3.0](https://github.com/michael-berardi/ultralink/releases/tag/v0.3.0). This branch is version 0.3.1 and is not published yet.
+On **macOS 13 or later**, [download the latest published UltraLink release](https://github.com/michael-berardi/ultralink/releases/latest), open its DMG and drag UltraLink to Applications. The download is signed and notarized, for Apple silicon and Intel. [Releases and checksums](https://github.com/michael-berardi/ultralink/releases/latest); the published download is [v0.3.0](https://github.com/michael-berardi/ultralink/releases/tag/v0.3.0). This branch is version 0.3.2 and is not published yet.
 
 Open UltraLink while connected to your Starlink network, then click its menu bar icon. In **Settings › Dish**, enter another address if needed and press Return. If your router is in bypass mode, your network must still provide a route to the dish. Without a dish, enable **Settings › Data › Demo mode**.
 
@@ -36,13 +36,11 @@ Status is polled every two seconds when the popover is open or the menu bar show
 
 ## Privacy
 
-There is no telemetry, analytics, crash reporting, account, or unique identifier. The only automatic internet request is one anonymous daily check of the signed update feed: it carries a fixed User-Agent and no user id, app version, usage, machine or OS profile. Sparkle sends it through its own private session, so UltraLink cannot enforce a four-second timeout on that request; [Updates](docs/updates.md) records the exact gap. You can turn checks off in **Settings › Updates** or with `ULTRALINK_NO_UPDATE_CHECK=1`; automatic installation is off unless you opt in.
-
-It polls the dish at the address you set (default `192.168.100.1:9201`) over your local network. Those read-only requests contain no readings; dish data stays on your Mac. If you press **Start** on the speed test, macOS `networkQuality` contacts Apple’s servers. Sparkle fetches the signed GitHub feed for **Check Now** or automatic checks; an available update is downloaded from GitHub and verified with UltraLink’s key before installation. Links you click open in your browser.
-
-Local history — one week of per-minute readings, up to 400 daily totals and 200 outages — is in `~/Library/Application Support/UltraLink/history.json`. That folder is 0700 and the file is 0600. UltraLink’s own logs contain no readings, dish ID, addresses or paths; demo mode writes nothing. Settings, including the dish address, are in `~/Library/Preferences/com.libertydesignstudio.ultralink.plist`; Sparkle keeps any downloaded update under `~/Library/Caches/com.libertydesignstudio.ultralink`. To delete the history, use **Settings › Data › Erase History…**. To delete everything, quit UltraLink, delete `~/Library/Application Support/UltraLink` and `~/Library/Caches/com.libertydesignstudio.ultralink`, and run `defaults delete com.libertydesignstudio.ultralink`.
-
-The only third parties are Apple (speed test) and GitHub (updates and links), contacted only as described above.
+- Nothing you read is uploaded: no telemetry, analytics, crash reporting, account or identifier.
+- The only automatic request is one anonymous daily update check; a speed test you start asks Apple.
+- Your dish is read over your local network; the dish’s own settings are never changed.
+- A week of readings and your settings stay on this Mac, and stale leftovers are deleted automatically.
+- Delete everything with **Settings › Data › Erase History…** and the removal steps in [PRIVACY.md](PRIVACY.md).
 
 ## Updates
 

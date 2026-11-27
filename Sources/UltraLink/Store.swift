@@ -13,9 +13,15 @@ struct StoredHistory: Codable {
 }
 
 enum Store {
-    static var directory: URL {
-        let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+    /// The history folder's path, without creating or touching anything on disk. Retention uses
+    /// this so the launch cleanup never creates a folder.
+    static var directoryPath: URL {
+        FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("UltraLink", isDirectory: true)
+    }
+
+    static var directory: URL {
+        let dir = directoryPath
         do {
             try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true,
                                                     attributes: [.posixPermissions: 0o700])
@@ -36,8 +42,9 @@ enum Store {
         guard let data = try? Data(contentsOf: url) else { return StoredHistory() }
         do { return try JSONDecoder().decode(StoredHistory.self, from: data) }
         catch {
-            // Keep the unreadable file for inspection instead of silently overwriting it.
-            let backup = url.deletingLastPathComponent().appendingPathComponent("history.unreadable.json")
+            // Keep the unreadable file for inspection instead of silently overwriting it. The
+            // copy is not kept forever: Retention.sweep() removes it a week after it was written.
+            let backup = url.deletingLastPathComponent().appendingPathComponent(Retention.unreadableName)
             try? FileManager.default.removeItem(at: backup)
             try? FileManager.default.moveItem(at: url, to: backup)
             protect(backup, 0o600)
@@ -59,7 +66,7 @@ enum Store {
 
     static func erase() {
         try? FileManager.default.removeItem(at: url)
-        try? FileManager.default.removeItem(at: directory.appendingPathComponent("history.unreadable.json"))
+        try? FileManager.default.removeItem(at: directory.appendingPathComponent(Retention.unreadableName))
     }
 
     static let dayFormat: DateFormatter = {

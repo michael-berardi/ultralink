@@ -2,6 +2,23 @@
 
 Changes are recorded in [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.3.2] - 2026-11-26
+
+### Changed
+
+- The README **Privacy** section is now a five-line summary: no telemetry, one anonymous daily update check you can opt out of, nothing uploaded, what stays local, and how to remove it. All fine detail moved to the new [PRIVACY.md](PRIVACY.md), linked from the README.
+- `PRIVACY.md` inventories every local write — history, unreadable-history backup, settings plist, Sparkle's update download cache and private temp space — with each file's lifetime and removal steps.
+
+### Fixed
+
+- Update leftovers and temp files no longer accumulate. `Retention.sweep()` runs once at launch, before any update check, and deletes an unreadable-history copy after 7 days, update downloads left in `~/Library/Caches/com.libertydesignstudio.ultralink` after 7 days and `$TMPDIR/UltraLink` debris after 1 day. It only deletes, never writes, creates no folder, and is skipped in demo mode.
+- `Store.directoryPath` exposes the history folder without creating it, so the launch sweep cannot touch the disk on a fresh install.
+
+### Added
+
+- Retention regression test in `tests/unit/main.swift`: stale history backups, downloads and temp files are removed while `history.json`, recent downloads and files UltraLink does not own are kept; a missing directory is a no-op.
+- Privacy regression checks for the README summary length, the `PRIVACY.md` link, the retention bounds and the launch sweep.
+
 ## [0.3.1] - 2026-11-26
 
 ### Fixed
