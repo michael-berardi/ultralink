@@ -25,4 +25,4 @@ UltraLink follows the project's update contract: it tells you about a newer rele
 - Downloads are verified with the EdDSA public key in `Info.plist`; releases are signed and notarized for macOS. The update applies on relaunch.
 - Use **Check for Updates…** in the app menu or **Check Now** in Settings at any time. If the signed feed cannot be read, the app keeps working.
 
-The README keeps a five-line Privacy summary rather than the contract's long form; [PRIVACY.md](../PRIVACY.md) lists every request and every local file with its lifetime.
+The README keeps a five-line Privacy summary that follows the contract's short form; [PRIVACY.md](../PRIVACY.md) lists every request and every local file with its lifetime.
