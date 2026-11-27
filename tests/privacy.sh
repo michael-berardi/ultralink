@@ -94,6 +94,13 @@ privacy_lines=$(awk '/^## Privacy$/{f=1;next} /^## /{f=0} f && NF' README.md | w
 if awk '/^## Privacy$/{f=1;next} /^## /{f=0} f' README.md | grep -qE 'Application Support|Library/Caches|defaults delete'; then
   fail "README Privacy section still carries the local-path detail"
 fi
+grep -qF 'The only automatic internet request' README.md ||
+  fail "README still describes the update check as the only automatic request"
+grep -qF 'skipped **only** in demo mode: `--probe` still sweeps' PRIVACY.md ||
+  fail "PRIVACY.md does not state that only demo mode skips the sweep"
+if grep -qF 'neither demo mode nor `--probe` mode' PRIVACY.md; then
+  fail "PRIVACY.md still claims the sweep is skipped in probe mode"
+fi
 for detail in 'history.json' 'history.unreadable.json' 'com.libertydesignstudio.ultralink' \
               'Library/Caches' 'TMPDIR' 'networkQuality'; do
   grep -qF "$detail" PRIVACY.md || fail "PRIVACY.md omits $detail"
@@ -123,6 +130,8 @@ grep -qF 'Sources/UltraLink/Retention.swift' tests/unit.sh ||
   fail "the retention test is not compiled"
 grep -qF 'retention sweep bounds unreadable-history copies' tests/unit/main.swift ||
   fail "the retention regression test is missing"
+grep -qF 'PASS: retention sweep keeps a fresh nested download in an old cache folder' tests/unit/main.swift ||
+  fail "the fresh nested download regression test is missing"
 
 # Log messages must not carry addresses, paths or readings.
 if grep -REIn 'NSLog\([^)]*localizedDescription|os_log\([^)]*localizedDescription' Sources; then

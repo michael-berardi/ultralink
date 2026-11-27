@@ -32,17 +32,19 @@ Everything below is written by UltraLink itself. Nothing in it is uploaded.
 | `~/Library/Application Support/UltraLink/history.json` | One week of per-minute readings, up to 400 daily totals and 200 outages. Folder `0700`, file `0600`. | The newest week only; older buckets, days and outages are pruned continuously while the app runs | **Settings › Data › Erase History…**, or delete the folder after quitting |
 | `~/Library/Application Support/UltraLink/history.unreadable.json` | A private backup of `history.json` written only when that file cannot be decoded, kept so the damage can be inspected | **7 days** after it was written, then deleted automatically at launch (`Retention.unreadableHistory`) | Same as above, or just wait for the automatic sweep |
 | `~/Library/Preferences/com.libertydesignstudio.ultralink.plist` | Your settings: dish address, demo mode, notification and update choices | Until you remove it | Quit UltraLink, run `defaults delete com.libertydesignstudio.ultralink` |
-| `~/Library/Caches/com.libertydesignstudio.ultralink/` | Update downloads and partial downloads that Sparkle stages there | **7 days** for anything left behind, then deleted automatically at launch (`Retention.updateDownload`); a fresh download stays until it is used | Delete the folder after quitting |
+| `~/Library/Caches/com.libertydesignstudio.ultralink/` | Update downloads and partial downloads that Sparkle stages there | **7 days** per file, counted from that file's own modification date; stale leftovers are deleted automatically at launch (`Retention.updateDownload`), while a fresh nested download and its folders stay until it is used | Delete the folder after quitting |
 | `$TMPDIR/UltraLink/` | Private scratch space. No file is kept here today. | **1 day** for anything that appears, then deleted automatically at launch (`Retention.temporary`) | Nothing to do |
 
 Lifetime notes:
 
 - Retention bounds live in `Sources/UltraLink/Retention.swift` and are enforced by `Retention.sweep()`,
   which the app runs once at launch before any update check. The sweep only deletes; it never writes
-  a file and never creates a folder, and it runs in neither demo mode nor `--probe` mode.
+  a file and never creates a folder. It is skipped **only** in demo mode: `--probe` still sweeps.
+  Nested files are judged individually, so an old cache folder never takes a fresh download with it.
 - `tests/unit` covers the bounds: `tests/unit/main.swift` plants stale and fresh files in a scratch
   folder and proves that stale unreadable-history copies, update downloads and temp files are removed
-  while `history.json`, recent downloads and files UltraLink does not own are kept.
+  while `history.json`, recent downloads (including files nested in old folders) and files UltraLink
+  does not own are kept.
 - **Demo mode** writes no history and no settings.
 - **UltraLink's own logs** (`NSLog`, visible in Console) contain no readings, dish ID, addresses or
   paths. A failed update check and an unreadable history are logged as short phrases only, and a

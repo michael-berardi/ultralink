@@ -91,9 +91,29 @@ try! fm.setAttributes([.modificationDate: Date().addingTimeInterval(-9 * 86_400)
                       ofItemAtPath: cacheDir.appendingPathComponent("partial").path)
 plant(cacheDir.appendingPathComponent("fresh.dmg"), ageDays: 0.5)              // recent: kept
 plant(tempDir.appendingPathComponent("scratch"), ageDays: 2)                   // stale temp
+
+// Sparkle stages downloads in nested folders whose own dates can be old. A fresh file there must
+// survive; only stale files and emptied old folders may be removed.
+let cacheBundle = cacheDir.appendingPathComponent("com.libertydesignstudio.ultralink", isDirectory: true)
+let nestedUpdate = cacheBundle.appendingPathComponent("UltraLink 0.3.2", isDirectory: true).appendingPathComponent("Update", isDirectory: true)
+try! fm.createDirectory(at: nestedUpdate, withIntermediateDirectories: true)
+plant(cacheBundle.appendingPathComponent("UltraLink-0.3.0-mac.dmg"), ageDays: 9) // stale nested download
+plant(nestedUpdate.appendingPathComponent("UltraLink-0.3.2-mac.dmg"), ageDays: 0.5) // fresh nested download
+let emptiedFolder = cacheBundle.appendingPathComponent("OldPartial", isDirectory: true)
+try! fm.createDirectory(at: emptiedFolder, withIntermediateDirectories: true)
+for oldFolder in [cacheBundle, nestedUpdate, emptiedFolder] {
+    try! fm.setAttributes([.modificationDate: Date().addingTimeInterval(-9 * 86_400)],
+                          ofItemAtPath: oldFolder.path)
+}
+
 let removedBySweep = Set(Retention.sweep(now: Date(), historyDirectory: historyDir,
                                          cache: cacheDir, temp: tempDir))
-precondition(removedBySweep == ["history.unreadable.json", "UltraLink-0.2.0-mac.dmg", "partial", "scratch"],
+let expectedRemovals: Set<String> = [
+    "history.unreadable.json", "UltraLink-0.2.0-mac.dmg", "partial", "scratch",
+    "com.libertydesignstudio.ultralink/UltraLink-0.3.0-mac.dmg",
+    "com.libertydesignstudio.ultralink/OldPartial",
+]
+precondition(removedBySweep == expectedRemovals,
              "unexpected sweep result: \(removedBySweep.sorted())")
 precondition(fm.fileExists(atPath: historyDir.appendingPathComponent("history.json").path),
              "sweep removed the history file")
@@ -102,6 +122,15 @@ precondition(fm.fileExists(atPath: historyDir.appendingPathComponent("notes.txt"
 precondition(fm.fileExists(atPath: cacheDir.appendingPathComponent("fresh.dmg").path),
              "sweep removed a recent download")
 print("PASS: retention sweep bounds unreadable-history copies, update downloads and temp files")
+precondition(fm.fileExists(atPath: nestedUpdate.appendingPathComponent("UltraLink-0.3.2-mac.dmg").path),
+             "sweep removed a fresh nested download from an old folder")
+precondition(fm.fileExists(atPath: nestedUpdate.path),
+             "sweep removed the folder holding a fresh nested download")
+precondition(fm.fileExists(atPath: cacheBundle.path), "sweep removed an old folder with fresh content")
+precondition(!fm.fileExists(atPath: cacheBundle.appendingPathComponent("UltraLink-0.3.0-mac.dmg").path),
+             "sweep kept a stale nested download")
+precondition(!fm.fileExists(atPath: emptiedFolder.path), "sweep kept an emptied old folder")
+print("PASS: retention sweep keeps a fresh nested download in an old cache folder")
 
 // A missing directory (fresh install, no cache yet) is not an error and is not created.
 let absent = retentionRoot.appendingPathComponent("absent/deeper")

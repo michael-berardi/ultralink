@@ -6,7 +6,8 @@ import Foundation
 /// totals, 200 outages). Everything else is covered here: `sweep()` runs once at launch and
 /// removes anything older than its bound, so update downloads, unreadable-history copies and
 /// temporary files cannot pile up. Sweep only deletes: it never creates a directory and never
-/// writes a file, and it is skipped in demo mode.
+/// writes a file, and it is skipped in demo mode. Each file is judged by its own modification
+/// date, so an old folder cannot take a freshly downloaded update with it.
 enum Retention {
     /// An unreadable-history copy is kept a week so it can be inspected, then removed.
     static let unreadableHistory: TimeInterval = 7 * 86_400
@@ -31,21 +32,36 @@ enum Retention {
     }
 
     /// Removes entries in `directory` whose modification date is older than `age`, optionally
-    /// limited to `names`. Returns the removed paths. A missing directory is not an error, and
-    /// nothing is created. Directories are removed with their contents.
+    /// limited to `names`. Returns the removed paths; nested paths are relative to `directory`.
+    /// A missing directory is not an error, and nothing is created. Folders are walked file by
+    /// file: stale files go, fresh files (and their folders) stay, and an emptied old folder is
+    /// removed. Symbolic links are treated as files and never followed.
     @discardableResult
     static func removeStale(in directory: URL, olderThan age: TimeInterval, names: Set<String>? = nil,
                             now: Date = Date(), fileManager: FileManager = .default) -> [String] {
-        let keys: Set<URLResourceKey> = [.contentModificationDateKey]
+        let keys: Set<URLResourceKey> = [.contentModificationDateKey, .isDirectoryKey, .isSymbolicLinkKey]
         guard let entries = try? fileManager.contentsOfDirectory(at: directory,
                                                                  includingPropertiesForKeys: Array(keys))
         else { return [] }
         var removed: [String] = []
         for entry in entries {
             if let names, !names.contains(entry.lastPathComponent) { continue }
-            guard let modified = (try? entry.resourceValues(forKeys: keys))?.contentModificationDate,
-                  now.timeIntervalSince(modified) > age else { continue }
-            if (try? fileManager.removeItem(at: entry)) != nil { removed.append(entry.lastPathComponent) }
+            guard let values = try? entry.resourceValues(forKeys: keys),
+                  let modified = values.contentModificationDate else { continue }
+            if values.isDirectory == true && values.isSymbolicLink != true {
+                // A folder's date says when its contents last changed, not when a nested download
+                // was written. Look at the files before deleting an apparently old folder.
+                let nested = removeStale(in: entry, olderThan: age, now: now, fileManager: fileManager)
+                removed += nested.map { "\(entry.lastPathComponent)/\($0)" }
+                let empty = (try? fileManager.contentsOfDirectory(atPath: entry.path))?.isEmpty == true
+                if empty, now.timeIntervalSince(modified) > age,
+                   (try? fileManager.removeItem(at: entry)) != nil {
+                    removed.append(entry.lastPathComponent)
+                }
+            } else if now.timeIntervalSince(modified) > age,
+                      (try? fileManager.removeItem(at: entry)) != nil {
+                removed.append(entry.lastPathComponent)
+            }
         }
         return removed
     }
