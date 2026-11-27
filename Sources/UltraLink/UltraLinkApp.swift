@@ -55,6 +55,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ note: Notification) {
         NSApp.setActivationPolicy(.accessory)
         Monitor.shared.start()
+        // Bounded local cleanup first: stale unreadable-history copies, stale update downloads and
+        // stale temporary files. It only deletes, never writes, and demo mode leaves the disk alone.
+        if !Monitor.shared.demo { Retention.sweep() }
         Updates.shared.start()
         if Monitor.shared.notifies { Monitor.shared.requestNotificationPermission() }
         QA.showRequestedWindows()
@@ -65,6 +68,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 /// verified with the EdDSA key in Info.plist before anything is installed. A scheduled find is
 /// gentle: a badge in the menu bar and a line in the popover instead of a dialog over the user's
 /// work. Clicking it opens Sparkle's standard dialog (Install, Remind Me Later, Skip This Version).
+/// SUSendProfileInfo=false in Info.plist keeps the anonymous GET free of machine/OS profile data.
 final class Updates: NSObject, ObservableObject, SPUUpdaterDelegate, SPUStandardUserDriverDelegate {
     static let shared = Updates()
     /// The version of a scheduled find waiting for the user's attention.
@@ -72,6 +76,9 @@ final class Updates: NSObject, ObservableObject, SPUUpdaterDelegate, SPUStandard
     @Published private(set) var canCheck = false
     private var controller: SPUStandardUpdaterController?
     private var observations: [NSKeyValueObservation] = []
+
+    /// The user-facing environment opt-out, also honored by `UpdateRules` for scheduled checks.
+    static var optedOut: Bool { ProcessInfo.processInfo.environment["ULTRALINK_NO_UPDATE_CHECK"] == "1" }
 
     static var currentVersion: String {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
@@ -103,15 +110,34 @@ final class Updates: NSObject, ObservableObject, SPUUpdaterDelegate, SPUStandard
     /// The same check Sparkle's daily timer runs, for testing the reminder against a local feed.
     func checkInBackground() { controller?.updater.checkForUpdatesInBackground() }
 
+    /// Sparkle reports `false` before the updater starts (for example in a snapshot or headless
+    /// run), so Settings reads the saved preference or the Info.plist default instead. An explicit
+    /// opt-out always shows the controls off.
+    private func displayedUpdateState(key: String, plistDefault: Bool) -> Bool {
+        guard !Self.optedOut else { return false }
+        if let saved = UserDefaults.standard.object(forKey: key) as? NSNumber { return saved.boolValue }
+        if let bundled = Bundle.main.object(forInfoDictionaryKey: key) as? NSNumber { return bundled.boolValue }
+        return plistDefault
+    }
+
     var automatic: Bool {
-        get { controller?.updater.automaticallyChecksForUpdates ?? true }
-        set { controller?.updater.automaticallyChecksForUpdates = newValue; objectWillChange.send() }
+        get { displayedUpdateState(key: "SUEnableAutomaticChecks", plistDefault: true) }
+        set {
+            guard !Self.optedOut else { return }
+            controller?.updater.automaticallyChecksForUpdates = newValue
+            if !newValue { automaticInstall = false }
+            objectWillChange.send()
+        }
     }
 
     /// Off by default (SUAutomaticallyUpdate in Info.plist); Sparkle stores the user's choice.
     var automaticInstall: Bool {
-        get { controller?.updater.automaticallyDownloadsUpdates ?? false }
-        set { controller?.updater.automaticallyDownloadsUpdates = newValue; objectWillChange.send() }
+        get { displayedUpdateState(key: "SUAutomaticallyUpdate", plistDefault: false) }
+        set {
+            guard !Self.optedOut else { return }
+            controller?.updater.automaticallyDownloadsUpdates = newValue
+            objectWillChange.send()
+        }
     }
 
     // MARK: SPUUpdaterDelegate

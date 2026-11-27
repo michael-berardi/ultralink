@@ -2,6 +2,17 @@
 
 Changes are recorded in [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.3.2] - 2026-11-26
+
+### Added
+
+- A bounded retention sweep runs once at launch, before any update check. It removes unreadable-history copies after 7 days, update downloads left in `~/Library/Caches/com.libertydesignstudio.ultralink` after 7 days, and `$TMPDIR/UltraLink` debris after 1 day. Files are judged individually, so a fresh nested download in an old cache folder survives; the sweep only deletes and never creates a folder. Demo mode leaves the disk untouched.
+- `PRIVACY.md` now inventories every local write, its lifetime and its removal steps; the README **Privacy** section is a short summary that links to it. A retention regression test covers stale, recent, nested and unrelated files.
+
+### Changed
+
+- The anonymous daily update check and its gentle, non-modal update prompt are unchanged: **Settings › Updates** or `ULTRALINK_NO_UPDATE_CHECK=1` turns checks off, and automatic installation remains an opt-in.
+
 ## [0.3.0] - 2026-11-26
 
 ### Added

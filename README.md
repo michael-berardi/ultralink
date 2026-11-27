@@ -12,7 +12,7 @@ A macOS menu bar app for Starlink users. See traffic, outages and obstructions w
 
 ## Install and first use
 
-On **macOS 13 or later**, [download UltraLink 0.3.0](https://github.com/michael-berardi/ultralink/releases/download/v0.3.0/UltraLink-0.3.0-mac.dmg), open the DMG and drag UltraLink to Applications. The download is signed and notarized, for Apple silicon and Intel. [Releases and checksums](https://github.com/michael-berardi/ultralink/releases/latest).
+On **macOS 13 or later**, [download the latest published UltraLink release](https://github.com/michael-berardi/ultralink/releases/latest), open the DMG and drag UltraLink to Applications. The download is signed and notarized, for Apple silicon and Intel. [Releases and checksums](https://github.com/michael-berardi/ultralink/releases/latest); the published download is [v0.3.0](https://github.com/michael-berardi/ultralink/releases/tag/v0.3.0). This branch is version 0.3.2 and is not published yet.
 
 Open UltraLink while connected to your Starlink network, then click its menu bar icon. In **Settings › Dish**, enter another address if needed and press Return. If your router is in bypass mode, your network must still provide a route to the dish. Without a dish, enable **Settings › Data › Demo mode**.
 
@@ -34,12 +34,11 @@ UltraLink checks its signed release feed once a day. When a new version is out, 
 
 ## Privacy
 
-- No telemetry, analytics or account. Dish readings never leave this Mac.
-- UltraLink reads the dish on your local network and never changes its settings.
-- History (a week of per-minute readings) stays in a private folder; **Settings › Data › Erase History…** deletes it.
-- The speed test contacts Apple’s servers, only when you start it.
-- The update check is one anonymous request a day to the GitHub release feed. Turn it off in **Settings › Updates**.
-- Details, including network and polling behavior: [PRIVACY.md](PRIVACY.md).
+- No telemetry, analytics or account: dish readings stay on this Mac and its settings are never changed.
+- The only automatic internet request is one anonymous daily update check; opt out in **Settings › Updates**.
+- History (one week of per-minute readings) stays in a private folder; **Settings › Data › Erase History…** removes it, and stale leftovers are pruned automatically.
+- The speed test contacts Apple only when you start it; an update downloads only after you choose Install or opt into automatic installation.
+- Full details, including local paths and removal steps: [PRIVACY.md](PRIVACY.md).
 
 ## Build from source
 
