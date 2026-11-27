@@ -95,7 +95,7 @@ if awk '/^## Privacy$/{f=1;next} /^## /{f=0} f' README.md | grep -qE 'Applicatio
   fail "README Privacy section still carries the local-path detail"
 fi
 grep -qF 'The only automatic internet request' README.md ||
-  fail "README still describes the update check as the only automatic request"
+  fail "README does not state the update check is the only automatic internet request"
 grep -qF 'skipped **only** in demo mode: `--probe` still sweeps' PRIVACY.md ||
   fail "PRIVACY.md does not state that only demo mode skips the sweep"
 if grep -qF 'neither demo mode nor `--probe` mode' PRIVACY.md; then
