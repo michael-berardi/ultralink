@@ -6,7 +6,7 @@ Changes are recorded in [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 ### Changed
 
-- The README **Privacy** section is now a five-line summary: no telemetry, one anonymous daily update check you can opt out of, nothing uploaded, what stays local, and how to remove it. All fine detail moved to the new [PRIVACY.md](PRIVACY.md), linked from the README.
+- The README **Privacy** section is now a five-line summary: no telemetry, one anonymous daily update check, nothing uploaded, what stays local, and how to remove it. All fine detail moved to the new [PRIVACY.md](PRIVACY.md), linked from the README.
 - `PRIVACY.md` inventories every local write — history, unreadable-history backup, settings plist, Sparkle's update download cache and private temp space — with each file's lifetime and removal steps.
 
 ### Fixed
