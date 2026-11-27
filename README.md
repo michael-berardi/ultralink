@@ -37,7 +37,7 @@ Status is polled every two seconds when the popover is open or the menu bar show
 ## Privacy
 
 - Nothing you read is uploaded: no telemetry, analytics, crash reporting, account or identifier.
-- The only automatic internet request is one anonymous daily update check; a speed test you start asks Apple.
+- The only automatic internet request is one anonymous daily update check; a speed test you start asks Apple, and an update download happens only when you use Check Now or opt into automatic installation.
 - Your dish is read over your local network; the dish’s own settings are never changed.
 - A week of readings and your settings stay on this Mac, and stale leftovers are deleted automatically.
 - Delete everything with **Settings › Data › Erase History…** and the removal steps in [PRIVACY.md](PRIVACY.md).
