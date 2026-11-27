@@ -2,7 +2,7 @@
 
 Changes are recorded in [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format. Versions follow [Semantic Versioning](https://semver.org/).
 
-## [0.3.2] - 2026-11-26
+## [0.3.2] - 2026-11-27
 
 ### Added
 

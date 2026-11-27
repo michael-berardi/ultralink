@@ -34,7 +34,7 @@ grep -qF 'ULTRALINK_NO_UPDATE_CHECK' Sources/UltraLink/UpdateRules.swift || fail
 grep -A1 '<key>SUSendProfileInfo</key>' Resources/Info.plist | grep -q '<false/>' ||
   fail "update check sends a system profile"
 
-# Version 0.3.2 is not a published release: link to the published download instead.
+# Link the published latest release, never a version-pinned asset that may not exist yet.
 if grep -qE 'releases/download/v0\.[0-9]+\.[0-9]+/UltraLink' README.md; then
   fail "README links to a version-pinned download asset"
 fi
