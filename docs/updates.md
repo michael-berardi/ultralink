@@ -24,3 +24,5 @@ UltraLink follows the project's update contract: it tells you about a newer rele
 - **Install updates automatically** is off by default and only works while automatic checks are on.
 - Downloads are verified with the EdDSA public key in `Info.plist`; releases are signed and notarized for macOS. The update applies on relaunch.
 - Use **Check for Updates…** in the app menu or **Check Now** in Settings at any time. If the signed feed cannot be read, the app keeps working.
+
+The README keeps a detailed Privacy section rather than the contract's short form; it lists the local stores, update request and deletion steps.
