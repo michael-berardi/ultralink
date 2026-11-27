@@ -43,7 +43,7 @@ enum Store {
         do { return try JSONDecoder().decode(StoredHistory.self, from: data) }
         catch {
             // Keep the unreadable file for inspection instead of silently overwriting it. The
-            // copy is not kept forever: Retention.sweep() removes it a week after it was written.
+            // copy is not kept forever: Retention.sweep() removes it a week after the broken file's own timestamp.
             let backup = url.deletingLastPathComponent().appendingPathComponent(Retention.unreadableName)
             try? FileManager.default.removeItem(at: backup)
             try? FileManager.default.moveItem(at: url, to: backup)
